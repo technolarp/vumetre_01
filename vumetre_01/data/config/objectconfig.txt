@@ -1,0 +1,12 @@
+{
+	"objectId": 1,
+	"groupId": 1,
+	"objectName": "vu-metre",
+	"activeLeds": 8,
+    "brightness": 80,
+	"couleur1": [0,255,0],
+	"couleur2": [255,128,0],
+	"couleur3": [255,0,0],
+	"seuil1": 4,
+	"seuil2": 7
+}
