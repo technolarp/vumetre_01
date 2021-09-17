@@ -382,7 +382,7 @@ class M_config
   objectConfig.brightness = 80;
 
   objectConfig.seuil1 = 4;
-	objectConfig.seuil1 = 7;
+	objectConfig.seuil2 = 7;
 	
 	strlcpy(  objectConfig.objectName,
   			          "vu-metre",
