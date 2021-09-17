@@ -22,6 +22,10 @@
    ----------------------------------------------------------------------------
 */
 
+/*
+ * bug blink
+ */
+
 #include <Arduino.h>
 
 // WIFI
@@ -115,9 +119,6 @@ void setup()
   }
   aFastled->allLedOff();
   
-
-  
-
   // WIFI
   WiFi.disconnect(true);
   /*
@@ -444,32 +445,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         if (doc.containsKey("new_couleur1")) 
         {
           String newColorStr = doc["new_couleur1"];
-          Serial.print(newColorStr);
-          Serial.print(" ");
-          uint16_t number = (uint16_t) strtol( &newColorStr[1], NULL, 16);
-  
-          // Split them up into r, g, b values
-          uint16_t r = number >> 16;
-          uint16_t g = number >> 8 & 0xFF;
-          uint16_t b = number & 0xFF;
-
-          Serial.print(r);
-          Serial.print(" ");
-          Serial.print(g);
-          Serial.print(" ");
-          Serial.print(b);
-          Serial.println(" ");
-          
-          aConfig.objectConfig.couleur1.red = r;
-          aConfig.objectConfig.couleur1.green = g;
-          aConfig.objectConfig.couleur1.blue = b;
-
-          Serial.print(aConfig.objectConfig.couleur1.red);
-          Serial.print(" ");
-          Serial.print(aConfig.objectConfig.couleur1.green);
-          Serial.print(" ");
-          Serial.print(aConfig.objectConfig.couleur1.blue);
-          Serial.println(" ");
+          convertStrToRGB(newColorStr,&aConfig.objectConfig.couleur1.red, &aConfig.objectConfig.couleur1.green, &aConfig.objectConfig.couleur1.blue);
           
           writeObjectConfig = true;
           sendObjectConfig = true;
@@ -479,17 +455,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         if (doc.containsKey("new_couleur2")) 
         {
           String newColorStr = doc["new_couleur2"];
-          uint16_t number = (uint16_t) strtol( &newColorStr[1], NULL, 16);
-  
-          // Split them up into r, g, b values
-          uint16_t r = number >> 16;
-          uint16_t g = number >> 8 & 0xFF;
-          uint16_t b = number & 0xFF;
-          
-          aConfig.objectConfig.couleur2.red = r;
-          aConfig.objectConfig.couleur2.green = g;
-          aConfig.objectConfig.couleur2.blue = b;
-          
+          convertStrToRGB(newColorStr,&aConfig.objectConfig.couleur2.red, &aConfig.objectConfig.couleur2.green, &aConfig.objectConfig.couleur2.blue);
+           
           writeObjectConfig = true;
           sendObjectConfig = true;
           uneFois=true;
@@ -498,16 +465,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         if (doc.containsKey("new_couleur3")) 
         {
           String newColorStr = doc["new_couleur3"];
-          uint16_t number = (uint16_t) strtol( &newColorStr[1], NULL, 16);
-  
-          // Split them up into r, g, b values
-          uint16_t r = number >> 16;
-          uint16_t g = number >> 8 & 0xFF;
-          uint16_t b = number & 0xFF;
-          
-          aConfig.objectConfig.couleur3.red = r;
-          aConfig.objectConfig.couleur3.green = g;
-          aConfig.objectConfig.couleur3.blue = b;
+          convertStrToRGB(newColorStr,&aConfig.objectConfig.couleur3.red, &aConfig.objectConfig.couleur3.green, &aConfig.objectConfig.couleur3.blue);
           
           writeObjectConfig = true;
           sendObjectConfig = true;
@@ -692,4 +650,16 @@ void sendUptime()
   toSend+= "\"}";
 
   ws.textAll(toSend);
+}
+
+
+
+void convertStrToRGB(String source, uint8_t* r, uint8_t* g, uint8_t* b)
+{
+  uint32_t  number = (uint32_t) strtol( &source[1], NULL, 16);
+  
+  // Split them up into r, g, b values
+  *r = number >> 16;
+  *g = number >> 8 & 0xFF;
+  *b = number & 0xFF;
 }
