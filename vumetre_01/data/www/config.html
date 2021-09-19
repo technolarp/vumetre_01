@@ -88,11 +88,14 @@
 	if (obj.hasOwnProperty('activeLeds'))
     {
       document.getElementById("activeLeds").value = obj.activeLeds;
-	  document.getElementById("activeLeds3").innerHTML = obj.activeLeds;
-	  document.getElementById("activeLeds4").innerHTML = obj.activeLeds;
 	  document.getElementById("indexLed").max = obj.activeLeds;
-	  document.getElementById("seuil1").max = obj.activeLeds;
-	  document.getElementById("seuil2").max = obj.activeLeds;
+	  
+	  document.getElementById("seuil1Max").innerHTML = parseInt(document.getElementById("seuil2").value,10)-1;
+	  document.getElementById("seuil1").max = parseInt(document.getElementById("seuil2").value,10)-1;
+	  document.getElementById("seuil2").min = parseInt(document.getElementById("seuil1").value,10)+1;
+	  document.getElementById("seuil2Min").innerHTML = parseInt(document.getElementById("seuil1").value,10)+1;
+	  document.getElementById("seuil2").max = obj.activeLeds;	  
+	  document.getElementById("seuil2Max").innerHTML = obj.activeLeds;	  
     }
 	
 	if (obj.hasOwnProperty('brightness'))
@@ -218,11 +221,11 @@
     </tr>
 	<tr>
       <td>Seuil 1</td>
-      <td><input type="number" id="seuil1" name="seuil1" min="1" max="document.getElementById('activeLeds').value" onchange="sendNewValue('seuil1',document.getElementById('seuil1').value, false);"> &nbsp; &nbsp; &nbsp; &nbsp;  1 - <span id="activeLeds3"></span></td>
+      <td><input type="number" id="seuil1" name="seuil1" min="1" max="document.getElementById('seuil2').value" onchange="sendNewValue('seuil1',document.getElementById('seuil1').value, false);"> &nbsp; &nbsp; &nbsp; &nbsp;  1 - <span id="seuil1Max"></span></td>
     </tr>
 	<tr>
       <td>Seuil 2</td>
-      <td><input type="number" id="seuil2" name="seuil2" min="1" max="document.getElementById('activeLeds').value" onchange="sendNewValue('seuil2',document.getElementById('seuil2').value, false);"> &nbsp; &nbsp; &nbsp; &nbsp;  1 - <span id="activeLeds4"></span></td>
+      <td><input type="number" id="seuil2" name="seuil2" min="document.getElementById('seuil2').value+1" max="document.getElementById('activeLeds').value" onchange="sendNewValue('seuil2',document.getElementById('seuil2').value, false);"> &nbsp; &nbsp; &nbsp; &nbsp;  <span id="seuil2Min"></span> - <span id="seuil2Max"></span></td>
     </tr>
 	<tr>
       <td>Couleur 1</td>
@@ -269,15 +272,15 @@
     </tr>
 	<tr>
       <td>BLINK esp8266</td>
-      <td><button onclick="sendNewValue('statutSerrureActuel',5);">BLINK</button></td>
+      <td><button onclick="sendNewValue('blink',1, false);">BLINK</button></td>
     </tr>
 	<tr>
       <td>Default Object config</td>
-      <td><button onclick="sendNewValue('defaultObjectConfig',1);">DEFAULT OBJECT CONFIG</button></td>
+      <td><button onclick="sendNewValue('defaultObjectConfig',1, false);">DEFAULT OBJECT CONFIG</button></td>
     </tr>
 	<tr>
       <td>Default Network config</td>
-      <td><button onclick="sendNewValue('defaultNetworkConfig',1);">DEFAULT NETWORK CONFIG</button></td>
+      <td><button onclick="sendNewValue('defaultNetworkConfig',1, false);">DEFAULT NETWORK CONFIG</button></td>
     </tr>
 	<tr>
       <td>Refresh config</td>

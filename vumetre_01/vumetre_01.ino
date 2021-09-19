@@ -22,10 +22,6 @@
    ----------------------------------------------------------------------------
 */
 
-/*
- * bug blink
- */
-
 #include <Arduino.h>
 
 // WIFI
@@ -52,6 +48,15 @@ uint8_t indexLed = 0;
 uint8_t indexLedLocal = 0;
 uint8_t indexLedPrevious = 0;
 bool uneFois = true;
+bool blinkUneFois = true;
+
+// STATUTS
+enum {
+  VUMETRE_ACTIF = 0,
+  VUMETRE_BLINK = 1
+};
+
+uint8_t statutVumetre = VUMETRE_ACTIF;
 
 // CONFIG
 #include "config.h"
@@ -121,16 +126,16 @@ void setup()
   
   // WIFI
   WiFi.disconnect(true);
-  /*
+  
   // AP MODE
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(aConfig.networkConfig.apIP, aConfig.networkConfig.apIP, aConfig.networkConfig.apNetMsk);
   WiFi.softAP(aConfig.networkConfig.apName, aConfig.networkConfig.apPassword);
   
-  */
+  /*
   // CLIENT MODE POUR DEBUG
-  const char* ssid = "MYDEBUG";
-  const char* password = "------";
+  const char* ssid = "ssid";
+  const char* password = "password";
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
@@ -138,7 +143,7 @@ void setup()
   {
     Serial.printf("WiFi Failed!\n");        
   }
-  /**/  
+  */
   
   // WEB SERVER
   // Print ESP Local IP Address
@@ -197,66 +202,27 @@ void loop()
   
   // manage task scheduler
   globalScheduler.execute();
+
+
   
-  // read potentiometer
-  currentMillisRead = millis();
-  if(currentMillisRead - previousMillisRead > intervalRead)
+// gerer le statut de la serrure
+  switch (statutVumetre)
   {
-    previousMillisRead = currentMillisRead;
+    case VUMETRE_ACTIF:
+      // la serrure est fermee
+      vumetreActif();
+      break;
 
-    uint32_t readValue = 0;
-    uint8_t readCount = 5;
-  
-    for (uint16_t i=0;i<readCount;i++)
-    {
-      readValue += analogRead(POTENTIOMETER_PIN);
-      //readValue += 600;
-    }
-    readValue /= readCount;
-  
-    indexLedLocal = map(readValue, 0, 1024, 0, aConfig.objectConfig.activeLeds);
+    case VUMETRE_BLINK:
+      // blink led pour identification
+      vumetreBlink();
+      break;
+      
+    default:
+      // nothing
+      break;
   }
-
-  if (indexLedPrevious!=indexLedLocal)
-  {
-    indexLed=indexLedLocal;
-    indexLedPrevious=indexLedLocal;
-
-    sendIndexLed();
-
-    uneFois=true;
-  }
-
-  if (uneFois)
-  {
-    uneFois=false;
-
-    for (int i=0;i<aConfig.objectConfig.activeLeds;i++)
-    {
-      if (i<indexLed)
-      {
-        if (i<aConfig.objectConfig.seuil1)
-        {
-          aFastled->setLed(i, aConfig.objectConfig.couleur1);
-        }
-        else if (i<aConfig.objectConfig.seuil2)
-        {
-          aFastled->setLed(i, aConfig.objectConfig.couleur2);
-        }
-        else
-        {
-          aFastled->setLed(i, aConfig.objectConfig.couleur3);
-        }        
-      }
-      else
-      {
-        aFastled->setLed(i, CRGB::Black);
-      }
-    }
-    aFastled->ledShow();
-  }
-  
-
+    
   // HEARTBEAT
   currentMillisHB = millis();
   if(currentMillisHB - previousMillisHB > intervalHB)
@@ -266,7 +232,7 @@ void loop()
     // send new value to html
     sendUptime();
         
-    //Serial.println("heartbeat");
+    Serial.println("heartbeat");
   }
 }
 /*
@@ -565,6 +531,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
           
           sendNetworkConfig = true;
         }
+
+        if ( doc.containsKey("new_blink") && doc["new_blink"]==1 )
+        {
+          Serial.println(F("BLINK"));
+          blinkUneFois = true;
+          statutVumetre = VUMETRE_BLINK;
+        }
   
         // modif config
         // write object config
@@ -623,12 +596,6 @@ uint16_t checkValeur(uint16_t valeur, uint16_t minValeur, uint16_t maxValeur)
   return(min(max(valeur,minValeur), maxValeur));
 }
 
-/*
-   ----------------------------------------------------------------------------
-   FIN DES FONCTIONS ADDITIONNELLES
-   ----------------------------------------------------------------------------
-*/
-
 void sendIndexLed()
 {
   String toSend = "{\"indexLed\":";
@@ -652,8 +619,6 @@ void sendUptime()
   ws.textAll(toSend);
 }
 
-
-
 void convertStrToRGB(String source, uint8_t* r, uint8_t* g, uint8_t* b)
 {
   uint32_t  number = (uint32_t) strtol( &source[1], NULL, 16);
@@ -663,3 +628,89 @@ void convertStrToRGB(String source, uint8_t* r, uint8_t* g, uint8_t* b)
   *g = number >> 8 & 0xFF;
   *b = number & 0xFF;
 }
+
+void vumetreActif()
+{
+  // read potentiometer
+  currentMillisRead = millis();
+  if(currentMillisRead - previousMillisRead > intervalRead)
+  {
+    previousMillisRead = currentMillisRead;
+
+    uint32_t readValue = 0;
+    uint8_t readCount = 5;
+  
+    for (uint16_t i=0;i<readCount;i++)
+    {
+      readValue += analogRead(POTENTIOMETER_PIN);
+      //readValue += 600;
+    }
+    readValue /= readCount;
+  
+    indexLedLocal = map(readValue, 0, 1024, 0, aConfig.objectConfig.activeLeds);
+  }
+
+  if (indexLedPrevious!=indexLedLocal)
+  {
+    indexLed=indexLedLocal;
+    indexLedPrevious=indexLedLocal;
+
+    sendIndexLed();
+
+    uneFois=true;
+  }
+
+  if (uneFois)
+  {
+    uneFois=false;
+
+    for (int i=0;i<aConfig.objectConfig.activeLeds;i++)
+    {
+      if (i<indexLed)
+      {
+        if (i<aConfig.objectConfig.seuil1)
+        {
+          aFastled->setLed(i, aConfig.objectConfig.couleur1);
+        }
+        else if (i<aConfig.objectConfig.seuil2)
+        {
+          aFastled->setLed(i, aConfig.objectConfig.couleur2);
+        }
+        else
+        {
+          aFastled->setLed(i, aConfig.objectConfig.couleur3);
+        }        
+      }
+      else
+      {
+        aFastled->setLed(i, CRGB::Black);
+      }
+    }
+    aFastled->ledShow();
+  }
+}
+
+void vumetreBlink()
+{
+  if (!aFastled->isEnabled() && blinkUneFois)
+  {
+    blinkUneFois = false;
+    aFastled->startAnimBlink(15, 200, CRGB::Blue, aConfig.objectConfig.activeLeds);
+  }
+
+  if (!aFastled->isAnimActive())
+  {
+    Serial.println(F("END TASK BLINK"));
+
+    //blinkUneFois = true;
+    uneFois = true;
+
+    // retour au statut precedent
+    statutVumetre = VUMETRE_ACTIF;
+  }
+}
+/*
+   ----------------------------------------------------------------------------
+   FIN DES FONCTIONS ADDITIONNELLES
+   ----------------------------------------------------------------------------
+*/
