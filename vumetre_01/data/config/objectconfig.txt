@@ -4,9 +4,11 @@
 	"objectName": "vu-metre",
 	"activeLeds": 8,
     "brightness": 80,
-	"couleur1": [0,255,0],
-	"couleur2": [255,128,0],
-	"couleur3": [255,0,0],
-	"seuil1": 4,
-	"seuil2": 7
+	"intervalScintillement":50,
+	"scintillementOnOff":0,
+	"couleurs": [[0,255,0],[255,128,0],[255,0,0],[0,255,255],[255,255,0],[255,0,255],[0,255,255],[255,255,0],[255,0,255],[0,255,255]],
+	"nbSeuils": 3,
+	"seuils": [2,4,6,8,10,12,14,16,18,20],
+	"statutActuel":0,
+	"statutPrecedent":0
 }
