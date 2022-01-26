@@ -24,16 +24,6 @@
 
 /*
 TODO LIST
-creer class potentiometre
-scintillement dans fastled
-scintillement rotatif 
-
-
-check desactiver seuils dans html
-update automatique min max pour chaque seuil
-
-refaire html
-cleanup code
 */
 
 #include <Arduino.h>
@@ -61,16 +51,15 @@ char bufferToSend[BUFFERSENDSIZE];
 #include <technolarp_fastled.h>
 M_fastled aFastled;
 
-bool increaseBrightness = true;
-uint8_t indexBrightness = 0;
+// POTENTIOMETRE
+#include <technolarp_potentiometre.h>
+M_potentiometre aPotentiometre;
 
-// POTENTIOMETER
-#define POTENTIOMETER_PIN A0
+// DIVERS
 uint8_t indexLed = 0;
 uint8_t indexLedLocal = 0;
 uint8_t indexLedPrevious = 0;
 bool uneFois = true;
-bool blinkUneFois = true;
 
 // STATUTS DE L OBJET
 enum {
@@ -82,8 +71,7 @@ enum {
 uint32_t previousMillisHB;
 uint32_t intervalHB;
 
-// TIME
-uint32_t previousMillisBrightness;
+// READ POTENTIOMETER
 uint32_t previousMillisRead;
 uint32_t intervalRead;
 /*
@@ -101,7 +89,7 @@ void setup()
   Serial.println(F(""));
   Serial.println(F("----------------------------------------------------------------------------"));
   Serial.println(F("TECHNOLARP - https://technolarp.github.io/"));
-  Serial.println(F("SERRURE MEDFAN 02 - https://github.com/technolarp/serrure_mefan_02"));
+  Serial.println(F("VU-METRE - https://github.com/technolarp/vumetre_01"));
   Serial.println(F("version 1.0 - 01/2022"));
   Serial.println(F("----------------------------------------------------------------------------"));
   
@@ -122,11 +110,11 @@ void setup()
   aConfig.printJsonFile("/config/networkconfig.txt");
   aConfig.readNetworkConfig("/config/networkconfig.txt");
 
-  // POTENTIOMETER
-  pinMode(POTENTIOMETER_PIN, INPUT);
-
   // FASTLED
   aFastled.setNbLed(aConfig.objectConfig.activeLeds);
+  aFastled.setControlBrightness(aConfig.objectConfig.scintillementOnOff);
+  aFastled.setIntervalControlBrightness(aConfig.objectConfig.intervalScintillement);
+  
   // animation led de depart
   aFastled.animationDepart(50, aFastled.getNbLed()*2, CRGB::Blue);
 
@@ -136,7 +124,6 @@ void setup()
   Serial.println(F(""));
   Serial.println(F("connecting WiFi"));
   
-  /*
   // AP MODE
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(aConfig.networkConfig.apIP, aConfig.networkConfig.apIP, aConfig.networkConfig.apNetMsk);
@@ -155,10 +142,10 @@ void setup()
   Serial.print(F("softAPIP: "));
   Serial.println(WiFi.softAPIP());
   
-  */
+  /*
   // CLIENT MODE POUR DEBUG
-  const char* ssid = "MYDEBUG";
-  const char* password = "ppppppppppp";
+  const char* ssid = "SID";
+  const char* password = "PASSWORD";
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   
@@ -170,11 +157,11 @@ void setup()
   {
     Serial.println(F("WiFi OK"));
   }
-  /**/
-  
+    
   // Print ESP Local IP Address
   Serial.print(F("localIP: "));
   Serial.println(WiFi.localIP());
+  */
   
   // WEB SERVER
   // Route for root / web page
@@ -192,8 +179,6 @@ void setup()
   // HEARTBEAT
   previousMillisHB = millis();
   intervalHB = 10000;
-
-  previousMillisBrightness = millis();
   
   previousMillisRead = millis();
   intervalRead = 10;
@@ -224,9 +209,9 @@ void loop()
 
   // FASTLED
   aFastled.updateAnimation();
-
+  
   // CONTROL BRIGHTNESS
-  controlBrightness();
+  aFastled.controlBrightness(aConfig.objectConfig.brightness);
   
   // gerer le statut de la serrure
   switch (aConfig.objectConfig.statutActuel)
@@ -402,6 +387,7 @@ void handleWebsocketBuffer()
         {
           uint16_t tmpValeur = doc["new_intervalScintillement"];
           aConfig.objectConfig.intervalScintillement = checkValeur(tmpValeur,0,1000);
+          aFastled.setIntervalControlBrightness(aConfig.objectConfig.intervalScintillement);
           
           writeObjectConfigFlag = true;
           sendObjectConfigFlag = true;
@@ -411,7 +397,8 @@ void handleWebsocketBuffer()
         {
           uint16_t tmpValeur = doc["new_scintillementOnOff"];
           aConfig.objectConfig.scintillementOnOff = checkValeur(tmpValeur,0,1);
-
+          aFastled.setControlBrightness(aConfig.objectConfig.scintillementOnOff);
+          
           if (aConfig.objectConfig.scintillementOnOff == 0)
           {
             FastLED.setBrightness(aConfig.objectConfig.brightness);
@@ -495,7 +482,7 @@ void handleWebsocketBuffer()
                     sizeof(aConfig.networkConfig.apName));
   
           // check for unsupported char
-          checkCharacter(aConfig.networkConfig.apName, "ABCDEFGHIJKLMNOPQRSTUVWYZ", 'A');
+          checkCharacter(aConfig.networkConfig.apName, "ABCDEFGHIJKLMNOPQRSTUVWYZ0123456789_-", 'A');
           
           writeNetworkConfigFlag = true;
           sendNetworkConfigFlag = true;
@@ -508,6 +495,7 @@ void handleWebsocketBuffer()
                     sizeof(aConfig.networkConfig.apPassword));
   
           writeNetworkConfigFlag = true;
+          sendNetworkConfigFlag = true;
         }
   
         if (doc.containsKey("new_apIP")) 
@@ -567,8 +555,8 @@ void handleWebsocketBuffer()
 
         if ( doc.containsKey("new_defaultObjectConfig") && doc["new_defaultObjectConfig"]==1 )
         {
-          Serial.println(F("reset to default object config"));
           aConfig.writeDefaultObjectConfig("/config/objectconfig.txt");
+          Serial.println(F("reset to default object config"));
           
           sendObjectConfigFlag = true;
           uneFois = true;
@@ -576,8 +564,8 @@ void handleWebsocketBuffer()
 
         if ( doc.containsKey("new_defaultNetworkConfig") && doc["new_defaultNetworkConfig"]==1 )
         {
-          Serial.println(F("reset to default network config"));
           aConfig.writeDefaultNetworkConfig("/config/networkconfig.txt");
+          Serial.println(F("reset to default network config"));          
           
           sendNetworkConfigFlag = true;
         }
@@ -601,7 +589,7 @@ void handleWebsocketBuffer()
         // write network config
         if (writeNetworkConfigFlag)
         {
-          writeObjectConfig();
+          writeNetworkConfig();
         }
   
         // resend network config
@@ -708,53 +696,13 @@ void convertStrToRGB(const char * source, uint8_t* r, uint8_t* g, uint8_t* b)
   *b = number & 0xFF;
 }
 
-void controlBrightness()
-{
-  if (aConfig.objectConfig.scintillementOnOff)
-  {
-    if(millis() - previousMillisBrightness > aConfig.objectConfig.intervalScintillement)
-    {
-      previousMillisBrightness = millis();
-  
-      if (increaseBrightness)
-      {
-        indexBrightness+=1;
-        if (indexBrightness>=250)
-        {
-          increaseBrightness=false;
-        }
-      }
-      else
-      {
-        indexBrightness-=1;
-        if (indexBrightness<5)
-        {
-          increaseBrightness=true;
-        }
-      }
-      aFastled.setBrightness(map(indexBrightness,5,250,5,aConfig.objectConfig.brightness));
-      aFastled.ledShow();
-    }
-  }
-}
-
 void vumetreActif()
 {
-  // read potentiometer
-  if(millis() - previousMillisRead > intervalRead)
+  if ( (millis() - previousMillisRead) > intervalRead)
   {
     previousMillisRead = millis();
-
-    uint32_t readValue = 0;
-    uint8_t readCount = 5;
-  
-    for (uint16_t i=0;i<readCount;i++)
-    {
-      readValue += analogRead(POTENTIOMETER_PIN);
-    }
-    readValue /= readCount;
-  
-    indexLedLocal = map(readValue, 0, 1024, 0, aConfig.objectConfig.activeLeds);
+    // update indexLocal by reading potentiomter
+    indexLedLocal = map(aPotentiometre.readPotValue(), 0, 1024, 0, aConfig.objectConfig.activeLeds);
   }
 
   // check modif de la valeur lue

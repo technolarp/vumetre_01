@@ -100,21 +100,6 @@
 	  document.getElementById("indexLed").max = obj.activeLeds;
     }
 	
-	/*
-	if (obj.hasOwnProperty('activeLeds'))
-    {
-      document.getElementById("activeLeds").value = obj.activeLeds;
-	  document.getElementById("indexLed").max = obj.activeLeds;
-	  
-	  document.getElementById("seuil1Max").innerHTML = parseInt(document.getElementById("seuil2").value,10)-1;
-	  document.getElementById("seuil1").max = parseInt(document.getElementById("seuil2").value,10)-1;
-	  document.getElementById("seuil2").min = parseInt(document.getElementById("seuil1").value,10)+1;
-	  document.getElementById("seuil2Min").innerHTML = parseInt(document.getElementById("seuil1").value,10)+1;
-	  document.getElementById("seuil2").max = obj.activeLeds;	  
-	  document.getElementById("seuil2Max").innerHTML = obj.activeLeds;	  
-    }
-	*/
-	
 	if (obj.hasOwnProperty('indexLed'))
     {
       document.getElementById("indexLed").value = obj.indexLed;
@@ -322,6 +307,20 @@
 	sendNewValue('seuils',toSend, false);
   }
   
+  function indexLedPlus()
+  {
+	document.getElementById('indexLed').value = parseInt(document.getElementById('indexLed').value)+1;
+	document.getElementById('indexLed2').innerHTML = document.getElementById('indexLed').value;
+	sendNewValue('indexLed',document.getElementById('indexLed').value, false)
+  }
+  
+  function indexLedMinus()
+  {
+	document.getElementById('indexLed').value = parseInt(document.getElementById('indexLed').value)-1;
+	document.getElementById('indexLed2').innerHTML = document.getElementById('indexLed').value;
+	sendNewValue('indexLed',document.getElementById('indexLed').value, false)
+  }
+  
   </script>  
 	<body>
 	<table width=600>
@@ -346,7 +345,11 @@
     </tr>
 	<tr>
       <td>indexLed : <span id="indexLed2"></span></td>
-      <td><input class="enabled" id="indexLed" type="range" min="0" max="8" step="1" oninput="sendNewValue('indexLed',this.value);document.getElementById('indexLed2').innerHTML = this.value;"></td>
+      <td>
+	  <button onclick="indexLedMinus();">-1</button>
+	  <input class="enabled" id="indexLed" type="range" min="0" max="8" step="1" oninput="sendNewValue('indexLed',this.value);document.getElementById('indexLed2').innerHTML = this.value;">
+	  <button onclick="indexLedPlus();">+1</button>
+	  </td>
     </tr>
     <tr>
       <td>Brightness : <span id="brightness2"></span></td>
