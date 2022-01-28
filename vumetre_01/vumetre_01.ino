@@ -482,7 +482,7 @@ void handleWebsocketBuffer()
                     sizeof(aConfig.networkConfig.apName));
   
           // check for unsupported char
-          checkCharacter(aConfig.networkConfig.apName, "ABCDEFGHIJKLMNOPQRSTUVWYZ0123456789_-", 'A');
+          checkCharacter(aConfig.networkConfig.apName, "ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789_-", 'A');
           
           writeNetworkConfigFlag = true;
           sendNetworkConfigFlag = true;
@@ -557,6 +557,11 @@ void handleWebsocketBuffer()
         {
           aConfig.writeDefaultObjectConfig("/config/objectconfig.txt");
           Serial.println(F("reset to default object config"));
+
+          aFastled.allLedOff();
+          aFastled.setNbLed(aConfig.objectConfig.activeLeds);          
+          aFastled.setControlBrightness(aConfig.objectConfig.scintillementOnOff);
+          aFastled.setIntervalControlBrightness(aConfig.objectConfig.intervalScintillement);
           
           sendObjectConfigFlag = true;
           uneFois = true;

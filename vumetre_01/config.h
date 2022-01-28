@@ -259,7 +259,7 @@ class M_config
     
     
     strlcpy( objectConfig.objectName,
-             "vu-metre",
+             "vu-metre 01",
              SIZE_ARRAY);
     
     writeObjectConfig(filename);
