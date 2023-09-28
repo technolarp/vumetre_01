@@ -82,7 +82,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
 void handleWebsocketBuffer();
 void notFound(AsyncWebServerRequest *request);
 
-void checkCharacter(char* toCheck, char* allowed, char replaceChar);
+void checkCharacter(char* toCheck, const char* allowed, char replaceChar);
 uint16_t checkValeur(uint16_t valeur, uint16_t minValeur, uint16_t maxValeur);
 void sendIndexLed();
 void sendUptime();
@@ -531,7 +531,7 @@ void handleWebsocketBuffer()
                     sizeof(aConfig.networkConfig.apName));
   
           // check for unsupported char
-          char listeCheck[] = "ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789_-";
+          const char listeCheck[] = "ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789_-";
           checkCharacter(aConfig.networkConfig.apName, listeCheck, 'A');
           
           writeNetworkConfigFlag = true;
@@ -664,7 +664,7 @@ void notFound(AsyncWebServerRequest *request)
     request->send(404, "text/plain", "Not found");
 }
 
-void checkCharacter(char* toCheck, char* allowed, char replaceChar)
+void checkCharacter(char* toCheck, const char* allowed, char replaceChar)
 {
   for (uint8_t i = 0; i < strlen(toCheck); i++)
   {
