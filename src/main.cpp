@@ -76,7 +76,7 @@ uint32_t intervalHB;
 uint32_t previousMillisRead;
 uint32_t intervalRead;
 
-// put function declarations here:
+// FUNCTION DECLARATIONS
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
 void handleWebsocketBuffer();
