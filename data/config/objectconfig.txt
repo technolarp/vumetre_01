@@ -1,0 +1,17 @@
+{
+	"objectId": 1,
+	"groupId": 1,
+	"objectName": "vu-metre",
+	"activeLeds": 8,
+    "brightness": 80,
+	"intervalScintillement":50,
+	"scintillementOnOff":0,
+	"couleurs": [[0,255,0],[255,128,0],[255,0,0],[0,255,255],[255,255,0],[255,0,255],[0,255,255],[255,255,0],[255,0,255],[0,255,255]],
+	"nbSeuils": 3,
+	"seuils": [2,4,6,8,10,12,14,16,18,20],
+	"nbLedAffiche":0,
+	"potentiometreActif":1,
+	"uneSeuleCouleur":0,
+	"statutActuel":0,
+	"statutPrecedent":0
+}
