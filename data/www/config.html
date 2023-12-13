@@ -267,8 +267,8 @@
   {
     if (string)
 	{
-		console.log("{\"new_"+ name + "\":\"" + val + "\"}");
-		websocket.send("{\"new_"+ name + "\":\"" + val + "\"}");
+		console.log("{\"new_"+ name + "\":\"" + val.replaceAll("\"", "\\\"") + "\"}");
+		websocket.send("{\"new_"+ name + "\":\"" + val.replaceAll("\"", "\\\"") + "\"}");
 	}
 	else
 	{

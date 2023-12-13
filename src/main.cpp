@@ -2,28 +2,37 @@
    ----------------------------------------------------------------------------
    TECHNOLARP - https://technolarp.github.io/
    VU-METRE 01 - https://github.com/technolarp/vumetre_01
-   version 1.0 - 09/2023
+   version 1.1 - 12/2023
    ----------------------------------------------------------------------------
 */
 
 /*
    ----------------------------------------------------------------------------
    Pour ce montage, vous avez besoin de 
-   1 potentiometre 10Hohms
-   3 ou + led neopixel
+   1 potentiometre 10Kohms
+   3 ou + led ws2812b
    ----------------------------------------------------------------------------
 */
 
 /*
    ----------------------------------------------------------------------------
    PINOUT
-   D0     NEOPIXEL
+   D0     LED
    A0     POTENTIOMETRE
    ----------------------------------------------------------------------------
 */
 
 /*
 TODO LIST
+fix bug FASTLED.show() inoperative
+handle serpentine matrix
+handle horizontal matrix
+https://github.com/FastLED/FastLED/blob/master/examples/XYMatrix/XYMatrix.ino
+
+DONE
+fix brightness at startup
+html fix " escape bug
+html remove index.html
 */
 
 #include <Arduino.h>
@@ -112,7 +121,7 @@ void setup()
   Serial.println(F("----------------------------------------------------------------------------"));
   Serial.println(F("TECHNOLARP - https://technolarp.github.io/"));
   Serial.println(F("VU-METRE - https://github.com/technolarp/vumetre_01"));
-  Serial.println(F("version 1.0 - 09/2023"));
+  Serial.println(F("version 1.1 - 12/2023"));
   Serial.println(F("----------------------------------------------------------------------------"));
   
   // I2C RESET
@@ -136,6 +145,7 @@ void setup()
   aFastled.setNbLed(aConfig.objectConfig.activeLeds);
   aFastled.setControlBrightness(aConfig.objectConfig.scintillementOnOff);
   aFastled.setIntervalControlBrightness(aConfig.objectConfig.intervalScintillement);
+  aFastled.setBrightness(aConfig.objectConfig.brightness);
   
   // animation led de depart
   aFastled.animationDepart(50, aFastled.getNbLed()*2, CRGB::Blue);
@@ -754,87 +764,66 @@ void convertStrToRGB(const char * source, uint8_t* r, uint8_t* g, uint8_t* b)
 
 void vumetreActif()
 {
-  if ( (millis() - previousMillisRead) > intervalRead)
+  // update indexLocal by reading potentiometer
+  if ((millis() - previousMillisRead) > intervalRead)
   {
     previousMillisRead = millis();
-    // update indexLocal by reading potentiomter
+
     if (aConfig.objectConfig.potentiometreActif)
     {
       uint16_t potValue = aPotentiometre.readPotValue();
-      indexLedLocal = map(potValue, 15, 1010, 0, aConfig.objectConfig.activeLeds);      
+      indexLedLocal = map(potValue, 15, 1010, 0, aConfig.objectConfig.activeLeds);
       indexLedLocal = checkValeur(indexLedLocal, 0, aConfig.objectConfig.activeLeds);
-    }    
+    }
   }
 
-  // check modif de la valeur lue
-  if (indexLedPrevious!=indexLedLocal)
+  // check id potentiiometer value change
+  if (indexLedPrevious != indexLedLocal)
   {
-    indexLed=indexLedLocal;
-    indexLedPrevious=indexLedLocal;
+    indexLed = indexLedLocal;
+    indexLedPrevious = indexLedLocal;
 
     sendIndexLed();
 
-    uneFois=true;
+    uneFois = true;
   }
 
   if (uneFois)
   {
-    uneFois=false;
+    uneFois = false;
 
-    // determiner la led de depart
+    // update the conversion index=>color array
+    for (uint8_t i = 0; i < aConfig.objectConfig.activeLeds; i++)
+    {
+      aFastled.indextoSeuil[i] = aConfig.objectConfig.nbSeuils - 1;
+      for (uint8_t j = aConfig.objectConfig.nbSeuils; j > 0; j--)
+      {
+        if (i < aConfig.objectConfig.seuils[j - 1])
+        {
+          aFastled.indextoSeuil[i] = j - 1;
+        }
+      }
+    }
+
+    // find the start led
     uint8_t startLed = 0;
     if (aConfig.objectConfig.nbLedAffiche > 0)
     {
-      startLed = max(0,indexLed - aConfig.objectConfig.nbLedAffiche);
+      startLed = max(0, indexLed - aConfig.objectConfig.nbLedAffiche);
     }
 
-    // determiner le seuil correspondant a indexLed
-    uint8_t indexSeuil = aConfig.objectConfig.nbSeuils-1;
-    
-    if (aConfig.objectConfig.uneSeuleCouleur==1)
-    {
-      for (uint8_t i=0;i<aConfig.objectConfig.nbSeuils;i++)
-      {
-        if (i==0)
-        {
-          if (indexLed-1 < aConfig.objectConfig.seuils[i] )
-          {
-            indexSeuil = i;
-          }
-        }
-        else if (i == aConfig.objectConfig.nbSeuils)
-        {
-          if (indexLed-1 >= aConfig.objectConfig.seuils[i])
-          {
-            indexSeuil = i;
-          }
-        }
-        else
-        {
-          if ( (indexLed-1 >= aConfig.objectConfig.seuils[i-1]) && (indexLed-1 < aConfig.objectConfig.seuils[i]) )
-          {          
-            indexSeuil = i;
-          }
-        }
-      }
-    }
-    
-    CRGB couleurTmp = aConfig.objectConfig.couleurs[indexSeuil];
-        
+    // update led color
     aFastled.allLedOff(false);
-    for (uint8_t i=startLed;i<indexLed;i++)
+    for (uint8_t i = startLed; i < indexLed; i++)
     {
       if (aConfig.objectConfig.uneSeuleCouleur==0)
       {
-        for (uint8_t j=aConfig.objectConfig.nbSeuils;j>0;j--)
-        {
-          if (i<aConfig.objectConfig.seuils[j-1])
-          {
-            couleurTmp = aConfig.objectConfig.couleurs[j-1]; 
-          }
-        }
+        aFastled.ledOn(i, aConfig.objectConfig.couleurs[aFastled.indextoSeuil[i]], false);
       }
-      aFastled.ledOn(i, couleurTmp, false);
+      else
+      {
+        aFastled.ledOn(i, aConfig.objectConfig.couleurs[aFastled.indextoSeuil[indexLed-1]], false);
+      }
     }
     aFastled.ledShow();
   }
