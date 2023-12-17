@@ -13,5 +13,8 @@
 	"potentiometreActif":1,
 	"uneSeuleCouleur":0,
 	"statutActuel":0,
-	"statutPrecedent":0
+	"statutPrecedent":0,
+	"ledSnakeMatrix":0,
+	"nbLignes": 2,
+	"nbColonnes": 2
 }
