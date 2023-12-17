@@ -11,16 +11,16 @@
 
 class M_config
 {
-  public:
+public:
   // structure stockage
   struct OBJECT_CONFIG_STRUCT
   {
     uint16_t objectId;
-  	uint16_t groupId;
-      
-  	char objectName[SIZE_ARRAY];
-  	
-  	uint8_t activeLeds;
+    uint16_t groupId;
+
+    char objectName[SIZE_ARRAY];
+
+    uint8_t activeLeds;
     uint8_t brightness;
 
     uint16_t intervalScintillement;
@@ -37,8 +37,12 @@ class M_config
 
     uint8_t potentiometreActif;
     uint8_t uneSeuleCouleur;
+
+    uint8_t ledSnakeMatrix;
+    uint8_t nbLignes;
+    uint8_t nbColonnes;
   };
-  
+
   // creer une structure
   OBJECT_CONFIG_STRUCT objectConfig;
 
@@ -49,28 +53,27 @@ class M_config
     char apName[SIZE_ARRAY];
     char apPassword[SIZE_ARRAY];
   };
-  
+
   // creer une structure
   NETWORK_CONFIG_STRUCT networkConfig;
-  
-  
+
   M_config()
   {
   }
-  
-  void readObjectConfig(const char * filename)
+
+  void readObjectConfig(const char *filename)
   {
     // lire les données depuis le fichier littleFS
     // Open file for reading
     File file = LittleFS.open(filename, "r");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to open file for reading"));
       return;
     }
-  
+
     StaticJsonDocument<JSONBUFFERSIZE> doc;
-    
+
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
     if (error)
@@ -83,7 +86,7 @@ class M_config
       // Copy values from the JsonObject to the Config
       objectConfig.objectId = doc["objectId"];
       objectConfig.groupId = doc["groupId"];
-      
+
       objectConfig.activeLeds = doc["activeLeds"];
       objectConfig.brightness = doc["brightness"];
       objectConfig.intervalScintillement = doc["intervalScintillement"];
@@ -91,58 +94,62 @@ class M_config
 
       objectConfig.statutActuel = doc["statutActuel"];
       objectConfig.statutPrecedent = doc["statutPrecedent"];
-      
+
       objectConfig.nbSeuils = doc["nbSeuils"];
       objectConfig.nbLedAffiche = doc["nbLedAffiche"];
 
       objectConfig.potentiometreActif = doc["potentiometreActif"];
       objectConfig.uneSeuleCouleur = doc["uneSeuleCouleur"];
 
+      objectConfig.ledSnakeMatrix = doc["ledSnakeMatrix"];
+      objectConfig.nbLignes = doc["nbLignes"];
+      objectConfig.nbColonnes = doc["nbColonnes"];
+
       if (doc.containsKey("couleurs"))
       {
-        JsonArray couleurArray=doc["couleurs"];
-        
-        for (uint8_t i=0;i<NB_COULEURS;i++)
+        JsonArray couleurArray = doc["couleurs"];
+
+        for (uint8_t i = 0; i < NB_COULEURS; i++)
         {
-          JsonArray rgbArray=couleurArray[i];
+          JsonArray rgbArray = couleurArray[i];
 
           objectConfig.couleurs[i].red = rgbArray[0];
           objectConfig.couleurs[i].green = rgbArray[1];
-          objectConfig.couleurs[i].blue =  rgbArray[2];
-        }        
+          objectConfig.couleurs[i].blue = rgbArray[2];
+        }
       }
 
       if (doc.containsKey("seuils"))
       {
         JsonArray seuilsArray = doc["seuils"];
-        
-        for (uint8_t i=0;i<NB_COULEURS;i++)
+
+        for (uint8_t i = 0; i < NB_COULEURS; i++)
         {
           objectConfig.seuils[i] = seuilsArray[i];
         }
       }
-      
+
       // read object name
       if (doc.containsKey("objectName"))
-      { 
-        strlcpy(  objectConfig.objectName,
-                  doc["objectName"],
-                  SIZE_ARRAY);
+      {
+        strlcpy(objectConfig.objectName,
+                doc["objectName"],
+                SIZE_ARRAY);
       }
     }
-      
+
     // Close the file (File's destructor doesn't close the file)
     file.close();
   }
 
-  void writeObjectConfig(const char * filename)
-  { 
+  void writeObjectConfig(const char *filename)
+  {
     // Delete existing file, otherwise the configuration is appended to the file
     LittleFS.remove(filename);
-    
+
     // Open file for writing
     File file = LittleFS.open(filename, "w");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to create file"));
       return;
@@ -152,10 +159,10 @@ class M_config
     DynamicJsonDocument doc(JSONBUFFERSIZE);
 
     doc["objectName"] = objectConfig.objectName;
-    
+
     doc["objectId"] = objectConfig.objectId;
     doc["groupId"] = objectConfig.groupId;
-    
+
     doc["activeLeds"] = objectConfig.activeLeds;
     doc["brightness"] = objectConfig.brightness;
     doc["intervalScintillement"] = objectConfig.intervalScintillement;
@@ -163,33 +170,37 @@ class M_config
 
     doc["statutActuel"] = objectConfig.statutActuel;
     doc["statutPrecedent"] = objectConfig.statutPrecedent;
-    
+
     doc["nbSeuils"] = objectConfig.nbSeuils;
     doc["nbLedAffiche"] = objectConfig.nbLedAffiche;
 
     doc["potentiometreActif"] = objectConfig.potentiometreActif;
     doc["uneSeuleCouleur"] = objectConfig.uneSeuleCouleur;
-    
+
+    doc["ledSnakeMatrix"] = objectConfig.ledSnakeMatrix;
+    doc["nbLignes"] = objectConfig.nbLignes;
+    doc["nbColonnes"] = objectConfig.nbColonnes;
+
     JsonArray seuilsArray = doc.createNestedArray("seuils");
 
-    for (uint8_t i=0;i<NB_COULEURS;i++)
+    for (uint8_t i = 0; i < NB_COULEURS; i++)
     {
       seuilsArray.add(objectConfig.seuils[i]);
     }
 
     JsonArray couleurArray = doc.createNestedArray("couleurs");
 
-    for (uint8_t i=0;i<NB_COULEURS;i++)
+    for (uint8_t i = 0; i < NB_COULEURS; i++)
     {
       JsonArray couleur_x = couleurArray.createNestedArray();
-      
+
       couleur_x.add(objectConfig.couleurs[i].red);
       couleur_x.add(objectConfig.couleurs[i].green);
       couleur_x.add(objectConfig.couleurs[i].blue);
     }
 
     // Serialize JSON to file
-    if (serializeJson(doc, file) == 0) 
+    if (serializeJson(doc, file) == 0)
     {
       Serial.println(F("Failed to write to file"));
     }
@@ -198,102 +209,105 @@ class M_config
     file.close();
   }
 
-  void writeDefaultObjectConfig(const char * filename)
+  void writeDefaultObjectConfig(const char *filename)
   {
     objectConfig.objectId = 1;
     objectConfig.groupId = 1;
 
     objectConfig.activeLeds = 8;
     objectConfig.brightness = 80;
-    
+
     objectConfig.intervalScintillement = 50;
     objectConfig.scintillementOnOff = 0;
 
     objectConfig.statutActuel = 0;
     objectConfig.statutPrecedent = 0;
-           
+
     objectConfig.nbSeuils = 3;
     objectConfig.nbLedAffiche = 0;
 
     objectConfig.potentiometreActif = 1;
     objectConfig.uneSeuleCouleur = 0;
 
-    for (uint8_t i=0;i<NB_COULEURS;i++)
+    objectConfig.ledSnakeMatrix = 0;
+    objectConfig.nbLignes = 2;
+    objectConfig.nbColonnes = 2;
+
+    for (uint8_t i = 0; i < NB_COULEURS; i++)
     {
-      objectConfig.seuils[i] = 2*(i+1);
+      objectConfig.seuils[i] = 2 * (i + 1);
     }
 
     // couleur 0
     objectConfig.couleurs[0].red = 0;
     objectConfig.couleurs[0].green = 255;
-    objectConfig.couleurs[0].blue =  0;
+    objectConfig.couleurs[0].blue = 0;
 
     // couleur 1
     objectConfig.couleurs[1].red = 255;
     objectConfig.couleurs[1].green = 128;
-    objectConfig.couleurs[1].blue =  0;
+    objectConfig.couleurs[1].blue = 0;
 
     // couleur 2
     objectConfig.couleurs[2].red = 255;
     objectConfig.couleurs[2].green = 0;
-    objectConfig.couleurs[2].blue =  0;
+    objectConfig.couleurs[2].blue = 0;
 
     // couleur 3
     objectConfig.couleurs[3].red = 255;
     objectConfig.couleurs[3].green = 255;
-    objectConfig.couleurs[3].blue =  0;
+    objectConfig.couleurs[3].blue = 0;
 
     // couleur 4
     objectConfig.couleurs[4].red = 0;
     objectConfig.couleurs[4].green = 255;
-    objectConfig.couleurs[4].blue =  255;
-    
+    objectConfig.couleurs[4].blue = 255;
+
     // couleur 5
     objectConfig.couleurs[5].red = 255;
     objectConfig.couleurs[5].green = 0;
-    objectConfig.couleurs[5].blue =  255;
+    objectConfig.couleurs[5].blue = 255;
 
     // couleur 6
     objectConfig.couleurs[6].red = 255;
     objectConfig.couleurs[6].green = 255;
-    objectConfig.couleurs[6].blue =  0;
+    objectConfig.couleurs[6].blue = 0;
 
     // couleur 7
     objectConfig.couleurs[7].red = 0;
     objectConfig.couleurs[7].green = 255;
-    objectConfig.couleurs[7].blue =  255;
-    
+    objectConfig.couleurs[7].blue = 255;
+
     // couleur 8
     objectConfig.couleurs[8].red = 255;
     objectConfig.couleurs[8].green = 0;
-    objectConfig.couleurs[8].blue =  255;
+    objectConfig.couleurs[8].blue = 255;
 
     // couleur 9
     objectConfig.couleurs[9].red = 255;
     objectConfig.couleurs[9].green = 255;
-    objectConfig.couleurs[9].blue =  0;
-    
-    
-    strlcpy( objectConfig.objectName,
-             "vu-metre 01",
-             SIZE_ARRAY);
-    
+    objectConfig.couleurs[9].blue = 0;
+
+    strlcpy(objectConfig.objectName,
+            "vu-metre 01",
+            SIZE_ARRAY);
+
     writeObjectConfig(filename);
   }
-  
-  void readNetworkConfig(const char * filename)
+
+  void readNetworkConfig(const char *filename)
   {
     // lire les données depuis le fichier littleFS
     // Open file for reading
     File file = LittleFS.open(filename, "r");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to open file for reading"));
       return;
     }
-  
+
     StaticJsonDocument<JSONBUFFERSIZE> doc;
-    
+
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
     if (error)
@@ -305,9 +319,9 @@ class M_config
     {
       // Copy values from the JsonObject to the Config
       if (doc.containsKey("apIP"))
-      { 
+      {
         JsonArray apIP = doc["apIP"];
-        
+
         networkConfig.apIP[0] = apIP[0];
         networkConfig.apIP[1] = apIP[1];
         networkConfig.apIP[2] = apIP[2];
@@ -315,42 +329,42 @@ class M_config
       }
 
       if (doc.containsKey("apNetMsk"))
-      { 
+      {
         JsonArray apNetMsk = doc["apNetMsk"];
-        
+
         networkConfig.apNetMsk[0] = apNetMsk[0];
         networkConfig.apNetMsk[1] = apNetMsk[1];
         networkConfig.apNetMsk[2] = apNetMsk[2];
         networkConfig.apNetMsk[3] = apNetMsk[3];
       }
-          
+
       if (doc.containsKey("apName"))
-      { 
-        strlcpy(  networkConfig.apName,
-                  doc["apName"],
-                  SIZE_ARRAY);
+      {
+        strlcpy(networkConfig.apName,
+                doc["apName"],
+                SIZE_ARRAY);
       }
 
       if (doc.containsKey("apPassword"))
-      { 
-        strlcpy(  networkConfig.apPassword,
-                  doc["apPassword"],
-                  SIZE_ARRAY);
+      {
+        strlcpy(networkConfig.apPassword,
+                doc["apPassword"],
+                SIZE_ARRAY);
       }
     }
-      
+
     // Close the file (File's destructor doesn't close the file)
     file.close();
   }
-  
-  void writeNetworkConfig(const char * filename)
+
+  void writeNetworkConfig(const char *filename)
   {
     // Delete existing file, otherwise the configuration is appended to the file
     LittleFS.remove(filename);
-  
+
     // Open file for writing
     File file = LittleFS.open(filename, "w");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to create file"));
       return;
@@ -363,68 +377,68 @@ class M_config
     doc["apPassword"] = networkConfig.apPassword;
 
     JsonArray arrayIp = doc.createNestedArray("apIP");
-    for (uint8_t i=0;i<4;i++)
+    for (uint8_t i = 0; i < 4; i++)
     {
       arrayIp.add(networkConfig.apIP[i]);
     }
-    
+
     JsonArray arrayNetMask = doc.createNestedArray("apNetMsk");
-    for (uint8_t i=0;i<4;i++)
+    for (uint8_t i = 0; i < 4; i++)
     {
       arrayNetMask.add(networkConfig.apNetMsk[i]);
     }
-    
+
     // Serialize JSON to file
-    if (serializeJson(doc, file) == 0) 
+    if (serializeJson(doc, file) == 0)
     {
       Serial.println(F("Failed to write to file"));
     }
-    
+
     // Close the file (File's destructor doesn't close the file)
     file.close();
   }
-  
-  void writeDefaultNetworkConfig(const char * filename)
+
+  void writeDefaultNetworkConfig(const char *filename)
   {
-    strlcpy(  networkConfig.apName,
-              "VUMETRE_1",
-              SIZE_ARRAY);
-    
-    strlcpy(  networkConfig.apPassword,
-              "",
-              SIZE_ARRAY);
-  
-    networkConfig.apIP[0]=192;
-    networkConfig.apIP[1]=168;
-    networkConfig.apIP[2]=1;
-    networkConfig.apIP[3]=1;
-  
-    networkConfig.apNetMsk[0]=255;
-    networkConfig.apNetMsk[1]=255;
-    networkConfig.apNetMsk[2]=255;
-    networkConfig.apNetMsk[3]=0;
-      
+    strlcpy(networkConfig.apName,
+            "VUMETRE_1",
+            SIZE_ARRAY);
+
+    strlcpy(networkConfig.apPassword,
+            "",
+            SIZE_ARRAY);
+
+    networkConfig.apIP[0] = 192;
+    networkConfig.apIP[1] = 168;
+    networkConfig.apIP[2] = 1;
+    networkConfig.apIP[3] = 1;
+
+    networkConfig.apNetMsk[0] = 255;
+    networkConfig.apNetMsk[1] = 255;
+    networkConfig.apNetMsk[2] = 255;
+    networkConfig.apNetMsk[3] = 0;
+
     writeNetworkConfig(filename);
   }
 
-  void stringJsonFile(const char * filename, char * target, uint16_t targetReadSize)
+  void stringJsonFile(const char *filename, char *target, uint16_t targetReadSize)
   {
     // Open file for reading
     File file = LittleFS.open(filename, "r");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to open file for reading"));
     }
     else
     {
       uint16_t cptRead = 0;
-      while ( (file.available()) && (cptRead<targetReadSize) )
+      while ((file.available()) && (cptRead < targetReadSize))
       {
         target[cptRead] = file.read();
         cptRead++;
       }
 
-      if (cptRead<targetReadSize)
+      if (cptRead < targetReadSize)
       {
         target[cptRead] = '\0';
       }
@@ -433,7 +447,7 @@ class M_config
         target[targetReadSize] = '\0';
       }
     }
-    
+
     // Close the file (File's destructor doesn't close the file)
     file.close();
   }
@@ -448,17 +462,17 @@ class M_config
     }
   }
 
-  void printJsonFile(const char * filename)
+  void printJsonFile(const char *filename)
   {
     // Open file for reading
     File file = LittleFS.open(filename, "r");
-    if (!file) 
+    if (!file)
     {
       Serial.println(F("Failed to open file for reading"));
     }
-      
+
     StaticJsonDocument<JSONBUFFERSIZE> doc;
-    
+
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
     if (error)
@@ -468,22 +482,22 @@ class M_config
     }
     else
     {
-      //serializeJsonPretty(doc, Serial);
+      // serializeJsonPretty(doc, Serial);
       serializeJson(doc, Serial);
       Serial.println();
     }
-    
+
     // Close the file (File's destructor doesn't close the file)
     file.close();
   }
-  
-  void listDir(const char * dirname)
+
+  void listDir(const char *dirname)
   {
     Serial.printf("Listing directory: %s", dirname);
     Serial.println();
-  
+
     Dir root = LittleFS.openDir(dirname);
-  
+
     while (root.next())
     {
       File file = root.openFile("r");
@@ -504,7 +518,7 @@ class M_config
     if (rtn != 0)
     {
       Serial.println(F("I2C bus error. Could not clear"));
-      if (rtn == 1) 
+      if (rtn == 1)
       {
         Serial.println(F("SCL clock line held low"));
       }
@@ -512,13 +526,13 @@ class M_config
       {
         Serial.println(F("SCL clock line held low by slave clock stretch"));
       }
-      else if (rtn == 3) 
+      else if (rtn == 3)
       {
         Serial.println(F("SDA data line held low"));
       }
     }
     else
-    { 
+    {
       // bus clear
       Serial.println(F("I2C bus clear"));
     }
@@ -534,75 +548,75 @@ class M_config
    *         1 if SCL held low.
    *         2 if SDA held low by slave clock stretch for > 2sec
    *         3 if SDA held low after 20 clocks.
-   *         
-   * from: 
+   *
+   * from:
    * https://github.com/esp8266/Arduino/issues/1025
    * http://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
    */
   uint8_t I2C_ClearBus()
   {
-  #if defined(TWCR) && defined(TWEN)
-    TWCR &= ~(_BV(TWEN)); //Disable the Atmel 2-Wire interface so we can control the SDA and SCL pins directly
-  #endif
+#if defined(TWCR) && defined(TWEN)
+    TWCR &= ~(_BV(TWEN)); // Disable the Atmel 2-Wire interface so we can control the SDA and SCL pins directly
+#endif
     pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
     pinMode(SCL, INPUT_PULLUP);
-  
-    delay(500);  // Wait 2.5 secs. This is strictly only necessary on the first power
+
+    delay(500); // Wait 2.5 secs. This is strictly only necessary on the first power
     // up of the DS3231 module to allow it to initialize properly,
     // but is also assists in reliable programming of FioV3 boards as it gives the
     // IDE a chance to start uploaded the program
     // before existing sketch confuses the IDE by sending Serial data.
-  
+
     boolean SCL_LOW = (digitalRead(SCL) == LOW); // Check is SCL is Low.
     if (SCL_LOW)
-    { //If it is held low Arduno cannot become the I2C master. 
-      return 1; //I2C bus error. Could not clear SCL clock line held low
+    {           // If it is held low Arduno cannot become the I2C master.
+      return 1; // I2C bus error. Could not clear SCL clock line held low
     }
-  
-    boolean SDA_LOW = (digitalRead(SDA) == LOW);  // vi. Check SDA input.
-    uint8_t clockCount = 20; // > 2x9 clock
-  
-    while (SDA_LOW && (clockCount > 0)) 
+
+    boolean SDA_LOW = (digitalRead(SDA) == LOW); // vi. Check SDA input.
+    uint8_t clockCount = 20;                     // > 2x9 clock
+
+    while (SDA_LOW && (clockCount > 0))
     { //  vii. If SDA is Low,
       clockCount--;
       // Note: I2C bus is open collector so do NOT drive SCL or SDA high.
-      pinMode(SCL, INPUT); // release SCL pullup so that when made output it will be LOW
-      pinMode(SCL, OUTPUT); // then clock SCL Low
-      delayMicroseconds(10); //  for >5uS
-      pinMode(SCL, INPUT); // release SCL LOW
+      pinMode(SCL, INPUT);        // release SCL pullup so that when made output it will be LOW
+      pinMode(SCL, OUTPUT);       // then clock SCL Low
+      delayMicroseconds(10);      //  for >5uS
+      pinMode(SCL, INPUT);        // release SCL LOW
       pinMode(SCL, INPUT_PULLUP); // turn on pullup resistors again
       // do not force high as slave may be holding it low for clock stretching.
       delayMicroseconds(10); //  for >5uS
       // The >5uS is so that even the slowest I2C devices are handled.
       SCL_LOW = (digitalRead(SCL) == LOW); // Check if SCL is Low.
       uint8_t counter = 20;
-      while (SCL_LOW && (counter > 0)) 
-      {  //  loop waiting for SCL to become High only wait 2sec.
+      while (SCL_LOW && (counter > 0))
+      { //  loop waiting for SCL to become High only wait 2sec.
         counter--;
         delay(100);
         SCL_LOW = (digitalRead(SCL) == LOW);
       }
       if (SCL_LOW)
-      { // still low after 2 sec error
+      {           // still low after 2 sec error
         return 2; // I2C bus error. Could not clear. SCL clock line held low by slave clock stretch for >2sec
       }
       SDA_LOW = (digitalRead(SDA) == LOW); //   and check SDA input again and loop
     }
     if (SDA_LOW)
-    { // still low
+    {           // still low
       return 3; // I2C bus error. Could not clear. SDA data line held low
     }
-  
+
     // else pull SDA line low for Start or Repeated Start
-    pinMode(SDA, INPUT); // remove pullup.
-    pinMode(SDA, OUTPUT);  // and then make it LOW i.e. send an I2C Start or Repeated start control.
+    pinMode(SDA, INPUT);  // remove pullup.
+    pinMode(SDA, OUTPUT); // and then make it LOW i.e. send an I2C Start or Repeated start control.
     // When there is only one I2C master a Start or Repeat Start has the same function as a Stop and clears the bus.
     /// A Repeat Start is a Start occurring after a Start with no intervening Stop.
-    delayMicroseconds(10); // wait >5uS
-    pinMode(SDA, INPUT); // remove output low
+    delayMicroseconds(10);      // wait >5uS
+    pinMode(SDA, INPUT);        // remove output low
     pinMode(SDA, INPUT_PULLUP); // and make SDA high i.e. send I2C STOP control.
-    delayMicroseconds(10); // x. wait >5uS
-    pinMode(SDA, INPUT); // and reset pins as tri-state inputs which is the default state on reset
+    delayMicroseconds(10);      // x. wait >5uS
+    pinMode(SDA, INPUT);        // and reset pins as tri-state inputs which is the default state on reset
     pinMode(SCL, INPUT);
     return 0; // all ok
   }
