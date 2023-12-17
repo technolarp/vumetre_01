@@ -337,12 +337,10 @@
 
 	function updateLedSnakeMatrix() {
 		if (document.getElementById("ledSnakeMatrix").value == 0) {
-			document.getElementById("ledSnakeMatrix2").innerHTML = "linear";
 			document.getElementById("nbLignes").disabled = true;
 			document.getElementById("nbColonnes").disabled = true;
 		}
 		else {
-			document.getElementById("ledSnakeMatrix2").innerHTML = "snake";
 			document.getElementById("nbLignes").disabled = false;
 			document.getElementById("nbColonnes").disabled = false;
 		}
@@ -424,7 +422,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td>ledSnakeMatrix : <span id="ledSnakeMatrix2"></span></td>
+			<td>ledSnakeMatrix : </span></td>
 			<td>
 				LINEAR <input class="enabled" id="ledSnakeMatrix" name="ledSnakeMatrix" type="range" style="width:30px;"
 					min="0" max="1" step="1"

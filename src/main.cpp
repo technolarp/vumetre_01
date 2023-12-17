@@ -868,7 +868,7 @@ void vumetreActif()
       }
     }
 
-    // update led color using indexMAtrix & indexToSeuil
+    // update led color using indexMatrix & indexToSeuil
     aFastled.allLedOff(false);
     for (uint8_t i = startLed; i < indexLed; i++)
     {
