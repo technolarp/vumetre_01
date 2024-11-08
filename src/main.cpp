@@ -179,7 +179,7 @@ void setup()
   /*
   // CLIENT MODE POUR DEBUG
   const char *ssid = "SSID";
-  const char *password = "PASWORD";
+  const char *password = "PASSWORD";
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
