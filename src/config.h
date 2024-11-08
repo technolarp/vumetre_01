@@ -1,10 +1,8 @@
 #include <LittleFS.h>
-#include <ArduinoJson.h> // arduino json v6  // https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h> // arduino json v7  // https://github.com/bblanchon/ArduinoJson
 
-// to upload config file : https://github.com/earlephilhower/arduino-esp8266littlefs-plugin/releases
 #define SIZE_ARRAY 20
 #define NB_COULEURS 10
-#define JSONBUFFERSIZE 2048
 
 #include <IPAddress.h>
 #include <FastLED.h>
@@ -72,7 +70,7 @@ public:
       return;
     }
 
-    StaticJsonDocument<JSONBUFFERSIZE> doc;
+    JsonDocument doc;
 
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
@@ -105,7 +103,7 @@ public:
       objectConfig.nbLignes = doc["nbLignes"];
       objectConfig.nbColonnes = doc["nbColonnes"];
 
-      if (doc.containsKey("couleurs"))
+      if (doc["couleurs"].is<JsonVariant>())
       {
         JsonArray couleurArray = doc["couleurs"];
 
@@ -119,7 +117,7 @@ public:
         }
       }
 
-      if (doc.containsKey("seuils"))
+      if (doc["seuils"].is<JsonVariant>())
       {
         JsonArray seuilsArray = doc["seuils"];
 
@@ -130,7 +128,7 @@ public:
       }
 
       // read object name
-      if (doc.containsKey("objectName"))
+      if (doc["objectName"].is<JsonVariant>())
       {
         strlcpy(objectConfig.objectName,
                 doc["objectName"],
@@ -156,7 +154,7 @@ public:
     }
 
     // Allocate a temporary JsonDocument
-    DynamicJsonDocument doc(JSONBUFFERSIZE);
+    JsonDocument doc;
 
     doc["objectName"] = objectConfig.objectName;
 
@@ -181,18 +179,18 @@ public:
     doc["nbLignes"] = objectConfig.nbLignes;
     doc["nbColonnes"] = objectConfig.nbColonnes;
 
-    JsonArray seuilsArray = doc.createNestedArray("seuils");
+    JsonArray seuilsArray = doc["seuils"].to<JsonArray>();
 
     for (uint8_t i = 0; i < NB_COULEURS; i++)
     {
       seuilsArray.add(objectConfig.seuils[i]);
     }
 
-    JsonArray couleurArray = doc.createNestedArray("couleurs");
+    JsonArray couleurArray = doc["couleurs"].to<JsonArray>();
 
     for (uint8_t i = 0; i < NB_COULEURS; i++)
     {
-      JsonArray couleur_x = couleurArray.createNestedArray();
+      JsonArray couleur_x = couleurArray.add<JsonArray>();
 
       couleur_x.add(objectConfig.couleurs[i].red);
       couleur_x.add(objectConfig.couleurs[i].green);
@@ -306,7 +304,7 @@ public:
       return;
     }
 
-    StaticJsonDocument<JSONBUFFERSIZE> doc;
+    JsonDocument doc;
 
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
@@ -318,7 +316,7 @@ public:
     else
     {
       // Copy values from the JsonObject to the Config
-      if (doc.containsKey("apIP"))
+      if (doc["apIP"].is<JsonVariant>())
       {
         JsonArray apIP = doc["apIP"];
 
@@ -328,7 +326,7 @@ public:
         networkConfig.apIP[3] = apIP[3];
       }
 
-      if (doc.containsKey("apNetMsk"))
+      if (doc["apNetMsk"].is<JsonVariant>())
       {
         JsonArray apNetMsk = doc["apNetMsk"];
 
@@ -338,14 +336,14 @@ public:
         networkConfig.apNetMsk[3] = apNetMsk[3];
       }
 
-      if (doc.containsKey("apName"))
+      if (doc["apName"].is<JsonVariant>())
       {
         strlcpy(networkConfig.apName,
                 doc["apName"],
                 SIZE_ARRAY);
       }
 
-      if (doc.containsKey("apPassword"))
+      if (doc["apPassword"].is<JsonVariant>())
       {
         strlcpy(networkConfig.apPassword,
                 doc["apPassword"],
@@ -371,18 +369,18 @@ public:
     }
 
     // Allocate a temporary JsonDocument
-    StaticJsonDocument<JSONBUFFERSIZE> doc;
+    JsonDocument doc;
 
     doc["apName"] = networkConfig.apName;
     doc["apPassword"] = networkConfig.apPassword;
 
-    JsonArray arrayIp = doc.createNestedArray("apIP");
+    JsonArray arrayIp = doc["apIP"].to<JsonArray>();
     for (uint8_t i = 0; i < 4; i++)
     {
       arrayIp.add(networkConfig.apIP[i]);
     }
 
-    JsonArray arrayNetMask = doc.createNestedArray("apNetMsk");
+    JsonArray arrayNetMask = doc["apNetMsk"].to<JsonArray>();
     for (uint8_t i = 0; i < 4; i++)
     {
       arrayNetMask.add(networkConfig.apNetMsk[i]);
@@ -471,7 +469,7 @@ public:
       Serial.println(F("Failed to open file for reading"));
     }
 
-    StaticJsonDocument<JSONBUFFERSIZE> doc;
+    JsonDocument doc;
 
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, file);
@@ -483,6 +481,7 @@ public:
     else
     {
       // serializeJsonPretty(doc, Serial);
+      Serial.print(measureJson(doc));
       serializeJson(doc, Serial);
       Serial.println();
     }
