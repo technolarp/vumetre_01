@@ -351,7 +351,7 @@ void handleWebsocketBuffer()
     bool sendNetworkConfigFlag = false;
 
     // modif object config
-    if (doc["new_objectName"].is<JsonVariant>())
+    if (doc["new_objectName"].is<const char*>())
     {
       strlcpy(aConfig.objectConfig.objectName,
               doc["new_objectName"],
@@ -438,7 +438,7 @@ void handleWebsocketBuffer()
       sendObjectConfigFlag = true;
     }
 
-    if (doc["new_nbSeuils"].is<JsonVariant>())
+    if (doc["new_nbSeuils"].is<unsigned short>())
     {
       uint16_t tmpValeur = doc["new_nbSeuils"];
       aConfig.objectConfig.nbSeuils = checkValeur(tmpValeur, 1, 10);
@@ -558,7 +558,7 @@ void handleWebsocketBuffer()
     }
 
     // modif network config
-    if (doc["new_apName"].is<JsonVariant>())
+    if (doc["new_apName"].is<const char*>())
     {
       strlcpy(aConfig.networkConfig.apName,
               doc["new_apName"],
@@ -572,7 +572,7 @@ void handleWebsocketBuffer()
       sendNetworkConfigFlag = true;
     }
 
-    if (doc["new_apPassword"].is<JsonVariant>())
+    if (doc["new_apPassword"].is<const char*>())
     {
       strlcpy(aConfig.networkConfig.apPassword,
               doc["new_apPassword"],
@@ -582,7 +582,7 @@ void handleWebsocketBuffer()
       sendNetworkConfigFlag = true;
     }
 
-    if (doc["new_apIP"].is<JsonVariant>())
+    if (doc["new_apIP"].is<const char*>())
     {
       char newIPchar[16] = "";
 
@@ -602,7 +602,7 @@ void handleWebsocketBuffer()
       sendNetworkConfigFlag = true;
     }
 
-    if (doc["new_apNetMsk"].is<JsonVariant>())
+    if (doc["new_apNetMsk"].is<const char*>())
     {
       char newNMchar[16] = "";
 
@@ -623,13 +623,13 @@ void handleWebsocketBuffer()
     }
 
     // actions sur le esp8266
-    if (doc["new_restart"].is<JsonVariant>() && doc["new_restart"] == 1)
+    if (doc["new_restart"].is<unsigned char>() && doc["new_restart"] == 1)
     {
       Serial.println(F("RESTART RESTART RESTART"));
       ESP.restart();
     }
 
-    if (doc["new_refresh"].is<JsonVariant>() && doc["new_refresh"] == 1)
+    if (doc["new_refresh"].is<unsigned char>() && doc["new_refresh"] == 1)
     {
       Serial.println(F("REFRESH"));
 
@@ -637,7 +637,7 @@ void handleWebsocketBuffer()
       sendNetworkConfigFlag = true;
     }
 
-    if (doc["new_defaultObjectConfig"].is<JsonVariant>() && doc["new_defaultObjectConfig"] == 1)
+    if (doc["new_defaultObjectConfig"].is<unsigned char>() && doc["new_defaultObjectConfig"] == 1)
     {
       aConfig.writeDefaultObjectConfig("/config/objectconfig.txt");
       Serial.println(F("reset to default object config"));
@@ -652,7 +652,7 @@ void handleWebsocketBuffer()
       uneFois = true;
     }
 
-    if (doc["new_defaultNetworkConfig"].is<JsonVariant>() && doc["new_defaultNetworkConfig"] == 1)
+    if (doc["new_defaultNetworkConfig"].is<unsigned char>() && doc["new_defaultNetworkConfig"] == 1)
     {
       aConfig.writeDefaultNetworkConfig("/config/networkconfig.txt");
       Serial.println(F("reset to default network config"));
