@@ -16,9 +16,6 @@ Cet objet est basé sur le kit technoLARP. Il permet d'allumer un nombre plus ou
 ## Exemples
 <img src="./images/technolarp_objet_vumetre.png" width="600">
 
-## BackOffice
-<img src="./images/VU-metre_back-office.png">
-
 ## Composants
 Vous aurez besoin pour monter le VU-mètre
 
@@ -42,14 +39,14 @@ Vous aurez besoin pour monter le VU-mètre
 <img src="./images/technolarp_pcb_connecteurs.png" width="800">
 
 ## Installation
-Pour installer le firmware de l'objet, il faut suivre ce [tutorial](https://github.com/technolarp/vumetre_01/)  
-A mettre à jour
+Pour installer le firmware de l'objet, il faut suivre ce [tutorial](https://github.com/technolarp/technolarp.github.io/wiki/Installation-du-firmware)  
 
-Sur Windows
-- Installation du driver CH340
 
-Upload du firmware
-- Brancher le câble micro-usb 
-- Démarrer chrome sur l'url [https://technolarp.github.io/flasher](https://technolarp.github.io/flasher)
+
+## BackOffice
+Pour se connecter au back office de l'objet, il faut suivre ce [tutorial](https://github.com/technolarp/technolarp.github.io/wiki/Connexion-au-back-office-de-l'objet-via-le-wifi)  
+
+
+<img src="./images/VU-metre_back-office.png">
 
 
