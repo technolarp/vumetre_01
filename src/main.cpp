@@ -2,7 +2,7 @@
    ----------------------------------------------------------------------------
    TECHNOLARP - https://technolarp.github.io/
    VU-METRE 01 - https://github.com/technolarp/vumetre_01
-   version 1.2.0 - 11/2024
+   version 1.2.0 - 05/2025
    ----------------------------------------------------------------------------
 */
 
@@ -122,7 +122,7 @@ void setup()
   Serial.println(F("----------------------------------------------------------------------------"));
   Serial.println(F("TECHNOLARP - https://technolarp.github.io/"));
   Serial.println(F("VU-METRE - https://github.com/technolarp/vumetre_01"));
-  Serial.println(F("version 1.2.0 - 11/2024"));
+  Serial.println(F("version 1.2.0 - 05/2025"));
   Serial.println(F("----------------------------------------------------------------------------"));
 
   // I2C RESET
