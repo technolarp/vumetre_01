@@ -1,0 +1,20 @@
+{
+"wifiClientsConfig":{
+    "wifiClientsList":[
+    {"ssid":"MYDEBUG","password":"aqwzsx789*","active":true},
+    {"ssid":"SSID_2","password":"password2","active":true},
+    {"ssid":"SSID_3","password":"password3","active":false},
+    {"ssid":"SSID_4","password":"password4","active":false},
+    {"ssid":"SSID_5","password":"password5","active":false}
+    ],
+    "wifiConnectDelay":10,
+    "disableSsid":false,
+    "rebootEsp":false
+},
+"wifiAPConfig":{
+    "apName":"VUMETRE_1",
+    "apPassword": "",
+    "apIP":[192,168,1,1],
+    "apNetMsk": [255,255,255,0]
+    }
+}

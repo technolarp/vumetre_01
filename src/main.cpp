@@ -2,7 +2,7 @@
    ----------------------------------------------------------------------------
    TECHNOLARP - https://technolarp.github.io/
    VU-METRE 01 - https://github.com/technolarp/vumetre_01
-   version 1.2.0 - 05/2025
+   version 1.3.0 - 10/2025
    ----------------------------------------------------------------------------
 */
 
@@ -122,7 +122,7 @@ void setup()
   Serial.println(F("----------------------------------------------------------------------------"));
   Serial.println(F("TECHNOLARP - https://technolarp.github.io/"));
   Serial.println(F("VU-METRE - https://github.com/technolarp/vumetre_01"));
-  Serial.println(F("version 1.2.0 - 05/2025"));
+  Serial.println(F("version 1.3.0 - 10/2025"));
   Serial.println(F("----------------------------------------------------------------------------"));
 
   // I2C RESET
@@ -136,12 +136,12 @@ void setup()
   aConfig.listDir("/config");
   aConfig.listDir("/www");
 
-  aConfig.printJsonFile("/config/objectconfig.txt");
-  aConfig.readObjectConfig("/config/objectconfig.txt");
+  aConfig.printJsonFile("/config/objectconfig.json");
+  aConfig.readObjectConfig("/config/objectconfig.json");
 
   Serial.println(F(""));
-  aConfig.printJsonFile("/config/networkconfig.txt");
-  aConfig.readNetworkConfig("/config/networkconfig.txt");
+  aConfig.printJsonFile("/config/networkconfig.json");
+  aConfig.readNetworkConfig("/config/networkconfig.json");
 
   // FASTLED
   aFastled.setNbLed(aConfig.objectConfig.activeLeds);
@@ -152,6 +152,105 @@ void setup()
   // animation led de depart
   aFastled.animationDepart(50, aFastled.getNbLed() * 2, CRGB::Blue);
 
+  // LOOP TO WIFI CLIENT
+  Serial.println(F(""));
+  Serial.println(F("connecting to wifi as client"));
+
+  for (uint8_t i = 0; i < WIFI_CLIENTS; i++)
+  {
+    if (aConfig.networkConfig.active[i] && strlen(aConfig.networkConfig.ssid[i])>0)
+    {
+      if (WiFi.status() != WL_CONNECTED)
+      {
+        Serial.print(F("ssid: "));
+        Serial.println(aConfig.networkConfig.ssid[i]);
+
+        bool ledState=true;
+        bool wifiFlag=true;
+        
+        WiFi.disconnect(true);
+        WiFi.begin(aConfig.networkConfig.ssid[i], aConfig.networkConfig.password[i]);
+
+        FastLED.clear();
+        // Loop continuously while WiFi is not connected
+        while ( (WiFi.status() != WL_CONNECTED) && (wifiFlag) )
+        {
+          delay(100);
+          Serial.print("/");
+          
+          if (ledState)
+          {
+            aFastled.ledOn(i%aConfig.objectConfig.activeLeds, CRGB::Blue, false);
+          }
+          else
+          {
+            aFastled.ledOn(i%aConfig.objectConfig.activeLeds, CRGB::Black, false);
+          }
+
+          aFastled.ledShow();
+          ledState = !ledState;
+
+          if (millis() - previousMillisHB > (aConfig.networkConfig.wifiConnectDelay*1000) )
+          {
+            previousMillisHB = millis();
+            wifiFlag = false;
+          }
+        }
+      }
+
+      Serial.println(F(" "));
+      if (WiFi.status() == WL_CONNECTED)
+      {
+        Serial.print(F("connected to "));
+        Serial.println(aConfig.networkConfig.ssid[i]);
+        Serial.print(F("IP address: "));
+        Serial.println(WiFi.localIP());
+      }
+      else
+      {
+        if (aConfig.networkConfig.disableSsid)
+        {
+          Serial.print(F("disable this ssid: "));
+          Serial.println(aConfig.networkConfig.ssid[i]);
+          aConfig.networkConfig.active[i]=false;
+          //writeNetworkConfig("/config/networkconfig.json");
+        }
+        if (aConfig.networkConfig.rebootEsp)
+        {
+          Serial.println(F("reboot"));
+          delay(1000);
+          ESP.restart();
+        }        
+      }
+    }    
+  }
+  Serial.println(" ");
+  
+  // WIFI AP MODE
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(F("failed to connect to wifi as client, creating a wifi AP: "));
+    Serial.println(aConfig.networkConfig.apName);
+
+    // WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_AP);
+    WiFi.softAPConfig(aConfig.networkConfig.apIP,aConfig.networkConfig.apIP,aConfig.networkConfig.apNetMsk);
+    bool apRC = WiFi.softAP(aConfig.networkConfig.apName, aConfig.networkConfig.apPassword);
+
+    if (apRC)
+    {
+      Serial.println(F("AP WiFi OK"));
+    }
+    else
+    {
+      Serial.println(F("AP WiFi failed"));
+    }
+
+    // Print ESP soptAP IP Address
+    Serial.print(F("softAPIP: "));
+    Serial.println(WiFi.softAPIP());
+  }
+  /*
   // WIFI
   WiFi.disconnect(true);
 
@@ -175,6 +274,7 @@ void setup()
   // Print ESP soptAP IP Address
   Serial.print(F("softAPIP: "));
   Serial.println(WiFi.softAPIP());
+  */
 
   /*
   // CLIENT MODE POUR DEBUG
@@ -640,7 +740,7 @@ void handleWebsocketBuffer()
 
     if (doc["new_defaultObjectConfig"].is<unsigned char>() && doc["new_defaultObjectConfig"] == 1)
     {
-      aConfig.writeDefaultObjectConfig("/config/objectconfig.txt");
+      aConfig.writeDefaultObjectConfig("/config/objectconfig.json");
       Serial.println(F("reset to default object config"));
 
       aFastled.allLedOff();
@@ -655,7 +755,7 @@ void handleWebsocketBuffer()
 
     if (doc["new_defaultNetworkConfig"].is<unsigned char>() && doc["new_defaultNetworkConfig"] == 1)
     {
-      aConfig.writeDefaultNetworkConfig("/config/networkconfig.txt");
+      aConfig.writeDefaultNetworkConfig("/config/networkconfig.json");
       Serial.println(F("reset to default network config"));
 
       sendNetworkConfigFlag = true;
@@ -757,24 +857,24 @@ void sendStatut()
 
 void sendObjectConfig()
 {
-  aConfig.stringJsonFile("/config/objectconfig.txt", bufferSendWebsocket, BUFFERSENDSIZE);
+  aConfig.stringJsonFile("/config/objectconfig.json", bufferSendWebsocket, BUFFERSENDSIZE);
   ws.textAll(bufferSendWebsocket);
 }
 
 void writeObjectConfig()
 {
-  aConfig.writeObjectConfig("/config/objectconfig.txt");
+  aConfig.writeObjectConfig("/config/objectconfig.json");
 }
 
 void sendNetworkConfig()
 {
-  aConfig.stringJsonFile("/config/networkconfig.txt", bufferSendWebsocket, BUFFERSENDSIZE);
+  aConfig.stringJsonFile("/config/networkconfig.json", bufferSendWebsocket, BUFFERSENDSIZE);
   ws.textAll(bufferSendWebsocket);
 }
 
 void writeNetworkConfig()
 {
-  aConfig.writeNetworkConfig("/config/networkconfig.txt");
+  aConfig.writeNetworkConfig("/config/networkconfig.json");
 }
 
 void convertStrToRGB(const char *source, uint8_t *r, uint8_t *g, uint8_t *b)
