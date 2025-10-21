@@ -169,6 +169,7 @@ void setup()
         bool wifiFlag=true;
         
         WiFi.disconnect(true);
+        delay(500);
         WiFi.begin(aConfig.networkConfig.ssid[i], aConfig.networkConfig.password[i]);
 
         FastLED.clear();
@@ -250,53 +251,7 @@ void setup()
     Serial.print(F("softAPIP: "));
     Serial.println(WiFi.softAPIP());
   }
-  /*
-  // WIFI
-  WiFi.disconnect(true);
-
-  Serial.println(F(""));
-  Serial.println(F("connecting WiFi"));
-
-  // AP MODE
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAPConfig(aConfig.networkConfig.apIP, aConfig.networkConfig.apIP, aConfig.networkConfig.apNetMsk);
-  bool apRC = WiFi.softAP(aConfig.networkConfig.apName, aConfig.networkConfig.apPassword);
-
-  if (apRC)
-  {
-    Serial.println(F("AP WiFi OK"));
-  }
-  else
-  {
-    Serial.println(F("AP WiFi failed"));
-  }
-
-  // Print ESP soptAP IP Address
-  Serial.print(F("softAPIP: "));
-  Serial.println(WiFi.softAPIP());
-  */
-
-  /*
-  // CLIENT MODE POUR DEBUG
-  const char *ssid = "SSID";
-  const char *password = "PASSWORD";
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-
-  if (WiFi.waitForConnectResult() != WL_CONNECTED)
-  {
-    Serial.println(F("WiFi Failed!"));
-  }
-  else
-  {
-    Serial.println(F("WiFi OK"));
-  }
-
-  // Print ESP Local IP Address
-  Serial.print(F("localIP: "));
-  Serial.println(WiFi.localIP());
-  */
-
+  
   // WEB SERVER
   // Route for root / web page
   server.serveStatic("/", LittleFS, "/www/").setDefaultFile("config.html");
@@ -659,6 +614,81 @@ void handleWebsocketBuffer()
     }
 
     // modif network config
+    if (doc["new_active"].is<JsonVariant>())
+    {
+      JsonArray newActive = doc["new_active"];
+
+      uint8_t x = checkValeur(newActive[0], 0, WIFI_CLIENTS - 1);
+      uint8_t y = checkValeur(newActive[1], 0, 1);
+
+      aConfig.networkConfig.active[x] = y;
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+
+      // update statut
+      uneFois = true;
+    }
+
+    if (doc["new_ssid"].is<JsonVariant>())
+    {
+      JsonArray newSsid = doc["new_ssid"];
+
+      uint8_t x = checkValeur(newSsid[0], 0, WIFI_CLIENTS - 1);
+      strlcpy(aConfig.networkConfig.ssid[x],
+              newSsid[1],
+              sizeof(aConfig.networkConfig.ssid[x]));
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+
+      // update statut
+      uneFois = true;
+    }
+
+    if (doc["new_password"].is<JsonVariant>())
+    {
+      JsonArray newPassword = doc["new_password"];
+
+      uint8_t x = checkValeur(newPassword[0], 0, WIFI_CLIENTS - 1);
+      strlcpy(aConfig.networkConfig.password[x],
+              newPassword[1],
+              sizeof(aConfig.networkConfig.password[x]));
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+
+      // update statut
+      uneFois = true;
+    }
+
+    if (doc["new_wifiConnectDelay"].is<unsigned short>())
+    {
+      uint16_t tmpValeur = doc["new_wifiConnectDelay"];
+      aConfig.networkConfig.wifiConnectDelay = checkValeur(tmpValeur, 1, 255);
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+    }
+
+    if (doc["new_disableSsid"].is<unsigned short>())
+    {
+      uint16_t tmpValeur = doc["new_disableSsid"];
+      aConfig.networkConfig.disableSsid = checkValeur(tmpValeur, 0, 1);
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+    }
+
+    if (doc["new_rebootEsp"].is<unsigned short>())
+    {
+      uint16_t tmpValeur = doc["new_rebootEsp"];
+      aConfig.networkConfig.rebootEsp = checkValeur(tmpValeur, 0, 1);
+
+      writeNetworkConfigFlag = true;
+      sendNetworkConfigFlag = true;
+    }
+
     if (doc["new_apName"].is<const char*>())
     {
       strlcpy(aConfig.networkConfig.apName,

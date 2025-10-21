@@ -416,42 +416,6 @@ public:
         snprintf(networkConfig.apName, SIZE_ARRAY, "TECHNOLARP_%04d", (ESP.getChipId() & 0xFFFF));
         strlcpy(networkConfig.apPassword, "", SIZE_ARRAY);
       }
-      
-      /****************************/
-      // Copy values from the JsonObject to the Config
-      // if (doc["apIP"].is<JsonVariant>())
-      // {
-      //   JsonArray apIP = doc["apIP"];
-
-      //   networkConfig.apIP[0] = apIP[0];
-      //   networkConfig.apIP[1] = apIP[1];
-      //   networkConfig.apIP[2] = apIP[2];
-      //   networkConfig.apIP[3] = apIP[3];
-      // }
-
-      // if (doc["apNetMsk"].is<JsonVariant>())
-      // {
-      //   JsonArray apNetMsk = doc["apNetMsk"];
-
-      //   networkConfig.apNetMsk[0] = apNetMsk[0];
-      //   networkConfig.apNetMsk[1] = apNetMsk[1];
-      //   networkConfig.apNetMsk[2] = apNetMsk[2];
-      //   networkConfig.apNetMsk[3] = apNetMsk[3];
-      // }
-
-      // if (doc["apName"].is<JsonVariant>())
-      // {
-      //   strlcpy(networkConfig.apName,
-      //           doc["apName"],
-      //           SIZE_ARRAY);
-      // }
-
-      // if (doc["apPassword"].is<JsonVariant>())
-      // {
-      //   strlcpy(networkConfig.apPassword,
-      //           doc["apPassword"],
-      //           SIZE_ARRAY);
-      // }
     }
 
     doc.clear();
@@ -476,16 +440,31 @@ public:
     // Allocate a temporary JsonDocument
     JsonDocument doc;
 
-    doc["apName"] = networkConfig.apName;
-    doc["apPassword"] = networkConfig.apPassword;
+    JsonArray arraySsid = doc["wifiClientsConfig"]["wifiClientsList"].to<JsonArray>();
+    for (uint8_t i = 0; i < WIFI_CLIENTS; i++)
+    {
+      JsonDocument docSsid;
+      docSsid["ssid"] = networkConfig.ssid[i];
+      docSsid["password"] = networkConfig.password[i];
+      docSsid["active"] = networkConfig.active[i];
 
-    JsonArray arrayIp = doc["apIP"].to<JsonArray>();
+      arraySsid.add(docSsid);
+    }
+
+    doc["wifiClientsConfig"]["wifiConnectDelay"] = networkConfig.wifiConnectDelay;
+    doc["wifiClientsConfig"]["disableSsid"] = networkConfig.disableSsid;
+    doc["wifiClientsConfig"]["rebootEsp"] = networkConfig.rebootEsp;
+    
+    doc["wifiAPConfig"]["apName"] = networkConfig.apName;
+    doc["wifiAPConfig"]["apPassword"] = networkConfig.apPassword;
+
+    JsonArray arrayIp = doc["wifiAPConfig"]["apIP"].to<JsonArray>();
     for (uint8_t i = 0; i < 4; i++)
     {
       arrayIp.add(networkConfig.apIP[i]);
     }
 
-    JsonArray arrayNetMask = doc["apNetMsk"].to<JsonArray>();
+    JsonArray arrayNetMask = doc["wifiAPConfig"]["apNetMsk"].to<JsonArray>();
     for (uint8_t i = 0; i < 4; i++)
     {
       arrayNetMask.add(networkConfig.apNetMsk[i]);
@@ -503,6 +482,26 @@ public:
 
   void writeDefaultNetworkConfig(const char *filename)
   {
+    for (uint8_t i = 0; i < WIFI_CLIENTS; i++)
+    {
+      char iChar[3];
+      itoa(i + 1, iChar, 10);
+      
+    //   strlcpy(networkConfig.ssid[i],
+    //           strcat("SSID_",iChar),
+    //           SIZE_ARRAY);
+
+    //   strlcpy(networkConfig.password[i],
+    //           strcat("password",iChar),
+    //           SIZE_ARRAY);
+
+    //   networkConfig.active[i] = false;
+    }
+
+    // networkConfig.wifiConnectDelay = 10;  
+    // networkConfig.disableSsid = false;
+    // networkConfig.rebootEsp = false;
+    
     strlcpy(networkConfig.apName,
             "VUMETRE_1",
             SIZE_ARRAY);

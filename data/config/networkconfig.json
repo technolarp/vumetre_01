@@ -7,7 +7,7 @@
     {"ssid":"SSID_4","password":"password4","active":false},
     {"ssid":"SSID_5","password":"password5","active":false}
     ],
-    "wifiConnectDelay":10,
+    "wifiConnectDelay":15,
     "disableSsid":false,
     "rebootEsp":false
 },
