@@ -677,7 +677,7 @@ void handleWebsocketBuffer()
       aConfig.networkConfig.disableSsid = checkValeur(tmpValeur, 0, 1);
 
       writeNetworkConfigFlag = true;
-      sendNetworkConfigFlag = true;
+      sendObjectConfigFlag = true;
     }
 
     if (doc["new_rebootEsp"].is<unsigned short>())
@@ -686,7 +686,7 @@ void handleWebsocketBuffer()
       aConfig.networkConfig.rebootEsp = checkValeur(tmpValeur, 0, 1);
 
       writeNetworkConfigFlag = true;
-      sendNetworkConfigFlag = true;
+      sendObjectConfigFlag = true;
     }
 
     if (doc["new_apName"].is<const char*>())
