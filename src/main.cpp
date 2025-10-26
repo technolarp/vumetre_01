@@ -43,6 +43,9 @@ html remove index.html
 
 AsyncWebServer server(80);
 
+// MDNS
+#include <ESP8266mDNS.h>        // Include the mDNS library
+
 // WEBSOCKET
 AsyncWebSocket ws("/ws");
 
@@ -251,6 +254,13 @@ void setup()
     Serial.print(F("softAPIP: "));
     Serial.println(WiFi.softAPIP());
   }
+
+  // MDNS
+  if (!MDNS.begin("technolarp.local"))
+  {
+    Serial.println("Error setting up MDNS responder!");
+  }
+  Serial.println("mDNS responder started");
   
   // WEB SERVER
   // Route for root / web page

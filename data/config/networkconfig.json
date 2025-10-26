@@ -2,7 +2,7 @@
 "wifiClientsConfig":{
     "wifiClientsList":[
     {"ssid":"MYDEBUG","password":"aqwzsx789*","active":true},
-    {"ssid":"SSID_2","password":"password2","active":true},
+    {"ssid":"SSID_2","password":"password2","active":false},
     {"ssid":"SSID_3","password":"password3","active":false},
     {"ssid":"SSID_4","password":"password4","active":false},
     {"ssid":"SSID_5","password":"password5","active":false}
