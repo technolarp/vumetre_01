@@ -1,7 +1,8 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h> // arduino json v7  // https://github.com/bblanchon/ArduinoJson
 
-#define SIZE_ARRAY 20
+#define SIZE_ARRAY 33
+#define SIZE_PWD 64
 #define NB_COULEURS 10
 #define WIFI_CLIENTS 5
 
@@ -50,7 +51,7 @@ public:
     uint8_t wifiConnectDelay = 5;
 
     char ssid[WIFI_CLIENTS][SIZE_ARRAY];
-    char password[WIFI_CLIENTS][SIZE_ARRAY];
+    char password[WIFI_CLIENTS][SIZE_PWD];
     bool active[WIFI_CLIENTS];
 
     bool disableSsid = false;
@@ -59,7 +60,7 @@ public:
     IPAddress apIP;
     IPAddress apNetMsk;
     char apName[SIZE_ARRAY];
-    char apPassword[SIZE_ARRAY];
+    char apPassword[SIZE_PWD];
   };
 
   // creer une structure
@@ -335,7 +336,7 @@ public:
           if (wifiClientArray[i]["ssid"].is<JsonVariant>())
           {
             strlcpy(networkConfig.ssid[i], wifiClientArray[i]["ssid"], SIZE_ARRAY);
-            strlcpy(networkConfig.password[i], wifiClientArray[i]["password"], SIZE_ARRAY);
+            strlcpy(networkConfig.password[i], wifiClientArray[i]["password"], SIZE_PWD);
             networkConfig.active[i]=wifiClientArray[i]["active"].as<boolean>();
           }
         }
@@ -394,7 +395,7 @@ public:
       {
         strlcpy(networkConfig.apPassword,
                 doc["wifiAPConfig"]["apPassword"],
-                SIZE_ARRAY);
+                SIZE_PWD);
       }
 
       // check AP config & create default config 
@@ -414,7 +415,7 @@ public:
         networkConfig.apNetMsk[3] = 0;
 
         snprintf(networkConfig.apName, SIZE_ARRAY, "TECHNOLARP_%04d", (ESP.getChipId() & 0xFFFF));
-        strlcpy(networkConfig.apPassword, "", SIZE_ARRAY);
+        strlcpy(networkConfig.apPassword, "", SIZE_PWD);
       }
     }
 
@@ -484,23 +485,23 @@ public:
   {
     for (uint8_t i = 0; i < WIFI_CLIENTS; i++)
     {
-      char iChar[3];
-      itoa(i + 1, iChar, 10);
+      char buffer[SIZE_ARRAY];
+      snprintf(buffer, SIZE_ARRAY, "SSID_%d", i + 1);
+      strlcpy(networkConfig.ssid[i],
+              buffer,
+              SIZE_ARRAY);
+
+      snprintf(buffer, SIZE_ARRAY, "password%d", i + 1);
+      strlcpy(networkConfig.password[i],
+              buffer,
+              SIZE_ARRAY);
       
-    //   strlcpy(networkConfig.ssid[i],
-    //           strcat("SSID_",iChar),
-    //           SIZE_ARRAY);
-
-    //   strlcpy(networkConfig.password[i],
-    //           strcat("password",iChar),
-    //           SIZE_ARRAY);
-
-    //   networkConfig.active[i] = false;
+      networkConfig.active[i] = false;
     }
 
-    // networkConfig.wifiConnectDelay = 10;  
-    // networkConfig.disableSsid = false;
-    // networkConfig.rebootEsp = false;
+    networkConfig.wifiConnectDelay = 15;  
+    networkConfig.disableSsid = false;
+    networkConfig.rebootEsp = false;
     
     strlcpy(networkConfig.apName,
             "VUMETRE_1",

@@ -2,7 +2,7 @@
    ----------------------------------------------------------------------------
    TECHNOLARP - https://technolarp.github.io/
    VU-METRE 01 - https://github.com/technolarp/vumetre_01
-   version 1.3.0 - 10/2025
+   version 1.3.0 - 11/2025
    ----------------------------------------------------------------------------
 */
 
@@ -37,14 +37,14 @@ html remove index.html
 
 #include <Arduino.h>
 
+// MDNS
+#include <ESP8266mDNS.h>        // Include the mDNS library
+
 // WIFI
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
 AsyncWebServer server(80);
-
-// MDNS
-#include <ESP8266mDNS.h>        // Include the mDNS library
 
 // WEBSOCKET
 AsyncWebSocket ws("/ws");
@@ -125,7 +125,7 @@ void setup()
   Serial.println(F("----------------------------------------------------------------------------"));
   Serial.println(F("TECHNOLARP - https://technolarp.github.io/"));
   Serial.println(F("VU-METRE - https://github.com/technolarp/vumetre_01"));
-  Serial.println(F("version 1.3.0 - 10/2025"));
+  Serial.println(F("version 1.3.0 - 11/2025"));
   Serial.println(F("----------------------------------------------------------------------------"));
 
   // I2C RESET
@@ -166,7 +166,10 @@ void setup()
       if (WiFi.status() != WL_CONNECTED)
       {
         Serial.print(F("ssid: "));
-        Serial.println(aConfig.networkConfig.ssid[i]);
+        Serial.print(aConfig.networkConfig.ssid[i]);
+        Serial.print(F(" - delay: "));
+        Serial.print(aConfig.networkConfig.wifiConnectDelay);
+        Serial.println(F(" seconds"));
 
         bool ledState=true;
         bool wifiFlag=true;
@@ -342,6 +345,8 @@ void loop()
     // envoyer l'uptime
     sendUptime();
   }
+
+  MDNS.update();
 }
 /*
    ----------------------------------------------------------------------------
