@@ -39,7 +39,6 @@
 	setInterval(checkHeartbeat, 10000);
 
 	var gateway = `ws://${window.location.hostname}/ws`;
-	<!-- var gateway = `ws://192.168.3.113/ws`; -->
 
 	var websocket;
 	window.addEventListener('load', onLoad);
@@ -264,7 +263,7 @@
 		}
 		
 		if (obj.wifiClientsConfig?.hasOwnProperty('disableSsid')) {
-			if (obj.wifiClientsConfig.disableSsid == "true") {
+			if (obj.wifiClientsConfig.disableSsid == true) {
 				document.getElementById("disableSsid").value = 1;
 			}
 			else {
@@ -273,7 +272,7 @@
 		}
 		
 		if (obj.wifiClientsConfig?.hasOwnProperty('rebootEsp')) {
-			if (obj.wifiClientsConfig.rebootEsp == "true") {
+			if (obj.wifiClientsConfig.rebootEsp == true) {
 				document.getElementById("rebootEsp").value = 1;
 			}
 			else {

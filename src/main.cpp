@@ -208,7 +208,7 @@ void setup()
           Serial.print(F("disable this ssid: "));
           Serial.println(aConfig.networkConfig.ssid[i]);
           aConfig.networkConfig.active[i]=false;
-          //writeNetworkConfig("/config/networkconfig.json");
+          writeNetworkConfig();
         }
         if (aConfig.networkConfig.rebootEsp)
         {
@@ -678,7 +678,7 @@ void handleWebsocketBuffer()
       aConfig.networkConfig.disableSsid = checkValeur(tmpValeur, 0, 1);
 
       writeNetworkConfigFlag = true;
-      sendObjectConfigFlag = true;
+      sendNetworkConfigFlag = true;
     }
 
     if (doc["new_rebootEsp"].is<unsigned short>())
@@ -687,7 +687,7 @@ void handleWebsocketBuffer()
       aConfig.networkConfig.rebootEsp = checkValeur(tmpValeur, 0, 1);
 
       writeNetworkConfigFlag = true;
-      sendObjectConfigFlag = true;
+      sendNetworkConfigFlag = true;
     }
 
     if (doc["new_apName"].is<const char*>())
