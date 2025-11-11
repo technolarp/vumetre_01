@@ -200,6 +200,16 @@ void setup()
         Serial.println(aConfig.networkConfig.ssid[i]);
         Serial.print(F("IP address: "));
         Serial.println(WiFi.localIP());
+
+        // MDNS
+        if (!MDNS.begin(aConfig.objectConfig.objectName))
+        {
+          Serial.println("Error setting up MDNS responder!");
+        }
+        Serial.println("mDNS responder started");
+        Serial.print(F("connect on webUI admin page : http://"));
+        Serial.print(aConfig.objectConfig.objectName);
+        Serial.println(F(".local"));        
       }
       else
       {
@@ -244,14 +254,17 @@ void setup()
     // Print ESP soptAP IP Address
     Serial.print(F("softAPIP: "));
     Serial.println(WiFi.softAPIP());
+
+    // MDNS
+    if (!MDNS.begin("technolarp"))
+    {
+      Serial.println("Error setting up MDNS responder!");
+    }
+    Serial.println("mDNS responder started");
+    Serial.println(F("connect on webUI admin page : http://technolarp.local"));
   }
 
-  // MDNS
-  if (!MDNS.begin("technolarp.local"))
-  {
-    Serial.println("Error setting up MDNS responder!");
-  }
-  Serial.println("mDNS responder started");
+  
 
   // WEB SERVER
   // Route for root / web page
@@ -333,6 +346,9 @@ void loop()
     // envoyer l'uptime
     sendUptime();
   }
+
+  // MDNS
+  MDNS.update();
 }
 /*
    ----------------------------------------------------------------------------
@@ -414,8 +430,16 @@ void handleWebsocketBuffer()
               doc["new_objectName"],
               sizeof(aConfig.objectConfig.objectName));
 
-      char const * listeCheck = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-";
-      checkCharacter(aConfig.objectConfig.objectName, listeCheck, '_');
+      // lowercase
+      for (uint8_t i = 0; i < sizeof(aConfig.objectConfig.objectName); i++)
+      {
+        aConfig.objectConfig.objectName[i] = tolower(aConfig.objectConfig.objectName[i]);
+      }
+      
+      // check character
+      char const * listeCheck = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
+      checkCharacter(aConfig.objectConfig.objectName, listeCheck, '-');
+      
 
       writeObjectConfigFlag = true;
       sendObjectConfigFlag = true;
@@ -696,9 +720,15 @@ void handleWebsocketBuffer()
               doc["new_apName"],
               sizeof(aConfig.networkConfig.apName));
 
+      // uppercase
+      for (uint8_t i = 0; i < sizeof(aConfig.objectConfig.objectName); i++)
+      {
+        aConfig.networkConfig.apName[i] = toupper(aConfig.networkConfig.apName[i]);
+      }
+      
       // check for unsupported char
       char const * listeCheck = "ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789_-";
-      checkCharacter(aConfig.networkConfig.apName, listeCheck, 'A');
+      checkCharacter(aConfig.networkConfig.apName, listeCheck, 'A');      
 
       writeNetworkConfigFlag = true;
       sendNetworkConfigFlag = true;
