@@ -13,9 +13,6 @@ Cet objet est basé sur le kit technoLARP. Il permet d'allumer un nombre plus ou
 **[BackOffice](#BackOffice)**  
 
 
-## Exemples
-<img src="./images/technolarp_objet_vumetre.png" width="600">
-
 ## Composants
 Vous aurez besoin pour monter le VU-mètre
 
@@ -38,6 +35,10 @@ Vous aurez besoin pour monter le VU-mètre
 
 <img src="./images/technolarp_pcb_connecteurs.png" width="800">
 
+## Exemples
+Un exemple du kit technoLARP monté  
+<img src="./images/technolarp_objet_vumetre.png" width="600">
+
 ## Installation
 
 Une fois le kit technoLARP assemblé, il faut charger le programme de l'objet dans la mémoire du kit technoLARP. Ce programme s'apelle un firmware. 
@@ -53,11 +54,10 @@ Le back office est une page web qui permet de gérer la configuration et d'utili
 
 
 ## Configuration réseau
-Le module peut fonctionner avec 2 type de connexions wifi
-    1. Soit en créant un réseau wifi (mode AP - Access Point)
-    1. Soit en se connectant à un réseau wifi déjà existant, comme celui d'une box internet  
+Le module peut fonctionner avec 2 type de connexions wifi  
+    + Soit en créant un réseau wifi (mode AP - Access Point)  
+    + Soit en se connectant à un réseau wifi déjà existant, comme celui d'une box internet  
 
-Cette page du [wiki](https://github.com/technolarp/technolarp.github.io/wiki/Param%C3%A8tres-R%C3%A9seau) explique comment configurer ces options
-
-A la première utilisation, l'objet technolarp fonctionne en mode AP et crée un réseau wifi du nom de l'objet (exemple: VUMETRE_1)
+Cette page du [wiki](https://github.com/technolarp/technolarp.github.io/wiki/Param%C3%A8tres-R%C3%A9seau) explique comment configurer ces options  
+A la première utilisation, l'objet technolarp fonctionne en mode AP et crée un réseau wifi du nom de l'objet (exemple: VUMETRE_1)  
 
