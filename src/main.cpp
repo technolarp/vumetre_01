@@ -95,7 +95,6 @@ void writeNetworkConfig();
 void convertStrToRGB(const char *source, uint8_t *r, uint8_t *g, uint8_t *b);
 void vumetreActif();
 void vumetreBlink();
-uint8_t XY(uint8_t x, uint8_t y);
 
 /*
    ----------------------------------------------------------------------------
