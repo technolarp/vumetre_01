@@ -486,7 +486,7 @@ public:
     for (uint8_t i = 0; i < WIFI_CLIENTS; i++)
     {
       char buffer[SIZE_ARRAY];
-      snprintf(buffer, SIZE_ARRAY, "SSID_%d", i + 1);
+      snprintf(buffer, SIZE_ARRAY, "SSID%d", i + 1);
       strlcpy(networkConfig.ssid[i],
               buffer,
               SIZE_ARRAY);

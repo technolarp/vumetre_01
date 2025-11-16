@@ -44,7 +44,7 @@ bool flagReceiveWebsocket = false;
 #include "config.h"
 M_config aConfig;
 
-#define BUFFERSENDSIZE 900
+#define BUFFERSENDSIZE 1024
 char bufferSendWebsocket[BUFFERSENDSIZE];
 
 // FASTLED
@@ -262,8 +262,6 @@ void setup()
     Serial.println("mDNS responder started");
     Serial.println(F("connect on webUI admin page : http://technolarp.local"));
   }
-
-  
 
   // WEB SERVER
   // Route for root / web page
