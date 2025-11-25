@@ -1,11 +1,11 @@
 {
 "wifiClientsConfig":{
     "wifiClientsList":[
-    {"ssid":"SSID_1","password":"password1","active":false},
-    {"ssid":"SSID_2","password":"password2","active":false},
-    {"ssid":"SSID_3","password":"password3","active":false},
-    {"ssid":"SSID_4","password":"password4","active":false},
-    {"ssid":"SSID_5","password":"password5","active":false}
+    {"ssid":"SSID1","password":"password1","active":false},
+    {"ssid":"SSID2","password":"password2","active":false},
+    {"ssid":"SSID3","password":"password3","active":false},
+    {"ssid":"SSID4","password":"password4","active":false},
+    {"ssid":"SSID5","password":"password5","active":false}
     ],
     "wifiConnectDelay":15,
     "disableSsid":false,
